@@ -58,7 +58,7 @@ var DATA = {
     "label_id": "Our Showreel",
     "label_en": "Our Showreel",
     "note_id": "Gold Club",
-    "note_en": "Gold Club"
+    "note_en": "Explore"
   },
   "contact": {
     "wa": "62817714647",
