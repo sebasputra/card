@@ -180,7 +180,16 @@ var DATA = {
       "BPK PKK KAJ",
       "Perduki"
     ],
-    "slides": []
+    "slides": [
+      {
+        "type": "image",
+        "src": "img/ministry-1.webp"
+      },
+      {
+        "type": "image",
+        "src": "img/ministry-2.webp"
+      }
+    ]
   },
   "refer": {
     "title_id": "How to Refer Me",

@@ -95,14 +95,14 @@ check('ada pintu ke slide My Ministry', !!$('.ed-sheet [data-a="minslides"]'));
 click($('.ed-sheet [data-a="minslides"]'));
 check('lembar slide ministry terbuka', !!$('#edslides') && $('.ed-sheet .ed-h').textContent.includes('Ministry'),
   $('.ed-sheet .ed-h') && $('.ed-sheet .ed-h').textContent);
-check('lembar ministry kosong', doc.querySelectorAll('#edslides .ed-tile').length === 0);
+check('lembar ministry berisi 2 foto', doc.querySelectorAll('#edslides .ed-tile').length === 2);
 check('ada tombol tambah video', !!$('.ed-sheet [data-a="addvid"]'));
 check('slide Kenalan tidak tercampur', w.DATA.intro_slides.length === 4);
 click($('.ed-sheet [data-a="ok"]'));
-// kotak kosong di step ministry punya tombol Atur foto dan video
+// carousel ministry punya tombol Atur foto dan video
 w.BioCard.go(w.BioCard.steps().map((s) => s.key).indexOf('personal'));
-check('kotak kosong ministry tampil saat menyunting', !!$('.mincar-empty'));
-const mb = $('.mincar-empty') && $('.mincar-empty').nextElementSibling;
+check('carousel ministry tampil saat menyunting', !!$('.mincar'));
+const mb = $('.mincar') && $('.mincar').nextElementSibling;
 check('tombol Atur foto dan video di bawahnya', !!mb && mb.classList.contains('ed-img-btn'), mb && mb.className);
 click(mb);
 check('tombol itu membuka lembar ministry', !!$('#edslides') && $('.ed-sheet .ed-h').textContent.includes('Ministry'));

@@ -103,6 +103,10 @@ klik('#vsound');
 
 // ---- My Ministry: carousel kosong tidak tampil, yang berisi tampil di antara judul dan chip
 BC.go(steps.indexOf('personal'));
+check('ministry berisi 2 foto sementara', w.document.querySelectorAll('.mincar .car-slide img').length === 2);
+const keepMin = w.DATA.ministry.slides;
+w.DATA.ministry.slides = [];
+BC.go(steps.indexOf('personal'));
 check('ministry tanpa slide: tidak ada carousel', !w.document.querySelector('.mincar'));
 w.DATA.ministry.slides = [{ type: 'image', src: 'img/slide2.webp' }, { type: 'video', src: 'img/slide4.mp4' }];
 BC.go(steps.indexOf('personal'));
@@ -113,7 +117,7 @@ check('carousel ministry di antara judul dan chip',
   mc && (mc.previousElementSibling.className + ' / ' + mc.nextElementSibling.className));
 check('carousel ministry mulai dari slide pertama', mc && mc.querySelector('.car-dots i').classList.contains('on'));
 check('video ministry tidak dibungkam', mc && !mc.querySelector('video').dataset.mute);
-w.DATA.ministry.slides = [];
+w.DATA.ministry.slides = keepMin;
 
 // ---- cover: foto hi-res + deret pin
 BC.go(0);
