@@ -645,8 +645,35 @@ body::after{
 .dark .igbox{border-color:rgba(255,255,255,.12);background:rgba(245,245,247,.07)}
 .dark .igbox-a{color:var(--cream)}
 
+/* ---------- kode QR BNI Connect ----------
+   Dibungkus tautan supaya di HP tidak perlu dipindai pakai alat lain, cukup diketuk.
+   Lebarnya jangan diturunkan di bawah sekitar 180px: di bawah itu pemindaian mulai
+   gagal, sudah diukur dengan mendekode ulang gambarnya di berbagai ukuran. */
+.qrbox{
+  margin-top:30px;text-align:center;padding:22px 18px;border-radius:var(--r);
+  background:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.7);
+  -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+}
+.qrtap{
+  display:block;width:min(64%,208px);margin:0 auto;border-radius:14px;overflow:hidden;
+  background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.06),0 14px 30px rgba(0,0,0,.10);
+  transition:transform .2s ease;
+}
+a.qrtap:hover{transform:translateY(-2px)}
+a.qrtap:active{transform:translateY(0)}
+.qrimg{display:block;width:100%;height:auto}
+.qrlab{
+  margin-top:16px;font-family:var(--h);font-weight:600;font-size:14px;
+  letter-spacing:.09em;text-transform:uppercase;color:var(--ink);
+}
+.qrhint{margin-top:6px;font-size:13.5px;line-height:1.5;letter-spacing:-.01em;color:var(--mu)}
+.dark .qrbox{background:rgba(245,245,247,.07);border-color:rgba(255,255,255,.12)}
+.dark .qrlab{color:var(--cream)}
+.dark .qrhint{color:var(--cream-dm)}
+@media (prefers-reduced-motion: reduce){ a.qrtap:hover{transform:none} }
+
 /* ---------- pin BNI ---------- */
-.pins{display:flex;flex-wrap:wrap;align-items:center;gap:13px;margin:0 0 22px}
+.pins{display:flex;flex-wrap:wrap;align-items:center;gap:13px;margin:20px 0 24px}
 .cover .pins{justify-content:center;margin:-10px 0 24px}
 .pin{display:block;width:46px;height:46px;flex:none}
 .pin img{

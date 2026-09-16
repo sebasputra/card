@@ -233,6 +233,22 @@
       '</div>';
   };
 
+  /* Kode QR BNI Connect. Dibungkus tautan supaya di HP tidak perlu dipindai pakai
+     alat lain, cukup diketuk. Di mode sunting tautannya dimatikan agar gambarnya
+     bisa diganti lewat tombol Ganti gambar. */
+  function qrHtml(q) {
+    if (!q || !has(q.src)) return '';
+    var tap = has(q.url) && !editing();
+    return '<div class="qrbox">' +
+      (tap ? '<a class="qrtap" href="' + esc(q.url) + '" target="_blank" rel="noopener">' : '<div class="qrtap">') +
+      '<img class="qrimg" src="' + esc(q.src) + '" alt="' + esc(L(q, 'label') || 'QR') + '" loading="lazy" data-img="bni.qr.src">' +
+      (tap ? '</a>' : '</div>') +
+      '<div class="qrlab"' + ed(lp('bni.qr', 'label')) + '>' + esc(L(q, 'label')) + '</div>' +
+      (has(L(q, 'hint')) || editing()
+        ? '<p class="qrhint"' + ed(lp('bni.qr', 'hint')) + '>' + esc(L(q, 'hint')) + '</p>' : '') +
+      '</div>';
+  }
+
   view.bni = function () {
     var b = D.bni || {}, biz = D.bisnis || {}, rows = '';
     function row(k, v, path) {
@@ -254,6 +270,7 @@
       '<div class="meta">' + rows + '</div><!--blocks-->' + chips(b.status, 'bni.status') +
       (has(L(biz, 'layanan')) || editing()
         ? '<p class="p"' + ed(lp('bisnis', 'layanan'), 1) + '>' + L(biz, 'layanan') + '</p>' : '') +
+      qrHtml(b.qr) +
       '</div>';
   };
 

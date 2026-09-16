@@ -113,6 +113,27 @@ BC.go(steps.indexOf('bni'));
 check('pin ikut tampil di step BNI', w.document.querySelectorAll('.pins .pin').length === 4,
   String(w.document.querySelectorAll('.pins .pin').length));
 
+// ---- QR BNI Connect, di bawah deskripsi usaha
+const qb = w.document.querySelector('.qrbox');
+check('kotak QR ada di step BNI', !!qb);
+if (qb) {
+  const qi = qb.querySelector('.qrimg');
+  check('gambar QR terpasang', qi && qi.getAttribute('src') === 'img/bni-qr.png', qi && qi.getAttribute('src'));
+  check('QR bisa diketuk, bukan cuma gambar',
+    qb.querySelector('a.qrtap') && qb.querySelector('a.qrtap').getAttribute('href').includes('bnijakartautara.com'),
+    qb.querySelector('a.qrtap') && qb.querySelector('a.qrtap').getAttribute('href'));
+  check('tautan dibuka di tab baru dengan rel aman',
+    qb.querySelector('a.qrtap').getAttribute('target') === '_blank' &&
+    qb.querySelector('a.qrtap').getAttribute('rel') === 'noopener');
+  check('berlabel BNI Connect', qb.querySelector('.qrlab').textContent.trim() === 'BNI Connect',
+    qb.querySelector('.qrlab').textContent.trim());
+  // harus sesudah deskripsi usaha, bukan di atasnya
+  const par = [...w.document.querySelectorAll('.step > *')].map((n) => n.className);
+  check('QR diletakkan sesudah deskripsi usaha',
+    par.indexOf('qrbox') > par.findIndex((c) => c === 'p'), par.join(' > '));
+  check('gambar QR dimuat malas', qi.getAttribute('loading') === 'lazy');
+}
+
 // ---- step Connect: tombol showreel
 BC.go(steps.indexOf('connect'));
 const reel = w.document.getElementById('reel');

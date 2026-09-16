@@ -86,7 +86,15 @@ var DATA = {
     "peran_en": "Leadership Team, BNI Magnify",
     "since_id": "2022",
     "since_en": "2022",
-    "status": []
+    "status": [],
+    "qr": {
+      "src": "img/bni-qr.png",
+      "url": "http://bnijakartautara.com/in/memberdetails?encryptedMemberId=DbGmeY22hqBewzRfphgTWQ%3D%3D&name=Stephen+Septian",
+      "label_id": "BNI Connect",
+      "label_en": "BNI Connect",
+      "hint_id": "Pindai, atau ketuk untuk membuka profil BNI Connect saya.",
+      "hint_en": "Scan it, or tap to open my BNI Connect profile."
+    }
   },
   "bisnis": {
     "nama": "Increasink",
