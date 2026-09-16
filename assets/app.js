@@ -178,6 +178,8 @@
     var hero = D.hero || {};
     var slides = (Array.isArray(D.intro_slides) ? D.intro_slides : []).filter(function (s) { return s && has(s.src); });
     if (lead && has(lead.src)) slides = [lead].concat(slides);
+    // hanya dua slide pertama carousel yang tampil yang boleh bersuara, sisanya selalu senyap
+    slides = slides.map(function (s, i) { return i < SOUND_SLIDES ? s : { type: s.type, src: s.src, poster: s.poster, mute: true }; });
     if (!slides.length) return '';
     var hasVid = slides.some(function (s) { return s.type === 'video'; });
     return '<div class="portrait carousel' + (extra ? ' ' + extra : '') + '" id="car" aria-roledescription="carousel">' +
@@ -186,6 +188,7 @@
             ? '<video class="car-media"' + (i === 0 ? ' src="' + esc(s.src) + '"' : '') +
               ' data-src="' + esc(s.src) + '"' + (has(s.poster) ? ' poster="' + esc(s.poster) + '"' : '') +
               ' muted playsinline preload="' + (i === 0 ? 'auto' : 'none') + '"' + (slides.length === 1 ? ' loop' : '') +
+              (s.mute ? ' data-mute="1"' : '') +
               ' aria-label="' + esc(hero.name || '') + '"></video>'
             : '<img class="car-media" src="' + esc(s.src) + '" alt="" draggable="false">') + '</div>';
         }).join('') + '</div>' +
@@ -673,6 +676,8 @@
   /* Suara video Kenalan. Pilihan suara diingat selama halaman terbuka; video ikut
      hilang saat pindah step, jadi suara tidak terus berbunyi di step lain. */
   var introSound = false;
+  var SOUND_SLIDES = 2;
+  function quiet(v) { return v.dataset.mute === '1'; }
   function paintSound(b) {
     b.innerHTML = svg(introSound ? 'soundOn' : 'soundOff');
     b.setAttribute('aria-pressed', String(introSound));
@@ -726,8 +731,8 @@
         if (o && j !== i && !o.paused) { o.pause(); o.currentTime = 0; }
       });
       var v = arm(i, 'auto');
-      if (sb) sb.hidden = !v;   // gambar tidak punya suara
-      if (v) { v.volume = 1; v.muted = !introSound; playVid(v); }
+      if (sb) sb.hidden = !v || quiet(v);   // gambar dan slide senyap tidak punya suara
+      if (v) { v.volume = 1; v.muted = !introSound || quiet(v); playVid(v); }
       else if (n > 1) carTimer = setTimeout(function () { if (alive()) next(); }, IMG_MS);
       if (n > 1) arm((i + 1) % n, 'metadata');   // cuma header, bukan seluruh berkas
     }
@@ -755,21 +760,22 @@
     if (sb) sb.addEventListener('click', function () {
       introSound = !introSound;
       var v = arm(carIndex, 'auto');
-      if (v) { v.volume = 1; v.muted = !introSound; playVid(v); }
+      if (v) { v.volume = 1; v.muted = !introSound || quiet(v); playVid(v); }
       /* Browser, terutama Safari iOS, hanya mengizinkan video bersuara yang pernah diputar
          lewat ketukan. Selagi masih di dalam ketukan ini, video lain diputar sebentar dengan
          volume 0 lalu dihentikan, supaya nanti boleh bersuara saat carousel maju sendiri. */
       if (introSound) slides.forEach(function (s, j) {
         var o = arm(j);
-        if (!o || j === carIndex) return;
+        if (!o || j === carIndex || quiet(o)) return;
+        /* iOS mengabaikan volume, jadi video langsung dihentikan di baris yang sama.
+           Panggilan play() di dalam ketukan sudah cukup untuk membuka izin suara. */
         o.volume = 0;
         o.muted = false;
         var pr = o.play();
-        var done = function () {
-          if (j !== carIndex) { o.pause(); o.currentTime = 0; }
-          o.volume = 1;
-        };
-        if (pr && pr.then) pr.then(done, done); else done();
+        o.pause();
+        o.currentTime = 0;
+        o.volume = 1;
+        if (pr && pr.catch) pr.catch(function () { /* pause() sengaja memotong play() */ });
       });
       paintSound(sb);
     });

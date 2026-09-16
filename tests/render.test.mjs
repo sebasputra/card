@@ -89,6 +89,18 @@ while (dotOn() !== 0) klik('.car-nav.prev');
 klik('.car-nav.prev');
 check('mundur dari slide pertama melingkar ke slide terakhir', dotOn() === 4, String(dotOn()));
 
+// suara hanya dari dua slide pertama: slide 4 (video bersuara) tetap senyap walau suara dinyalakan
+const cv = [...w.document.querySelectorAll('.car-slide video')];
+check('hanya video ke-3 dan ke-4 ditandai senyap',
+  cv.map((v) => v.dataset.mute === '1').join(',') === 'false,false,true,true',
+  cv.map((v) => v.dataset.mute || '-').join(','));
+klik('#vsound');
+check('slide terakhir tetap muted setelah suara dinyalakan', cv[3].muted === true);
+check('tombol suara disembunyikan di slide senyap', w.document.querySelector('#vsound').hidden === true);
+while (dotOn() !== 0) klik('.car-nav.next');
+check('slide pertama bersuara', cv[0].muted === false);
+klik('#vsound');
+
 // ---- cover: foto hi-res + deret pin
 BC.go(0);
 const ringImg = w.document.querySelector('.ring-img');
