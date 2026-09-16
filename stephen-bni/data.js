@@ -30,31 +30,31 @@ var DATA = {
     {
       "type": "video",
       "src": "img/gold.mp4",
-      "poster": "img/gold-poster.jpg"
+      "poster": "img/gold-poster.webp"
     },
     {
       "type": "video",
-      "src": "img/intro.mp4",
-      "poster": "img/intro-poster.jpg"
+      "src": "img/intro-v2.mp4",
+      "poster": "img/intro-poster.webp"
     },
     {
       "type": "image",
-      "src": "img/slide2.jpg"
+      "src": "img/slide2.webp"
     },
     {
       "type": "video",
       "src": "img/slide3.mp4",
-      "poster": "img/slide3-poster.jpg"
+      "poster": "img/slide3-poster.webp"
     },
     {
       "type": "video",
       "src": "img/slide4.mp4",
-      "poster": "img/slide4-poster.jpg"
+      "poster": "img/slide4-poster.webp"
     }
   ],
   "showreel": {
     "src": "img/gold.mp4",
-    "poster": "img/gold-poster.jpg",
+    "poster": "img/gold-poster.webp",
     "label_id": "Our Showreel",
     "label_en": "Our Showreel",
     "note_id": "Gold Club",

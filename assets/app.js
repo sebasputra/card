@@ -205,7 +205,7 @@
       '<div class="igbox-h">Instagram <b>@' + esc(ig) + '</b></div>' +
       '<iframe class="igframe" loading="lazy" scrolling="no" frameborder="0"' +
       ' title="Instagram @' + esc(ig) + '"' +
-      ' src="https://www.instagram.com/' + esc(encodeURIComponent(ig)) + '/embed/"></iframe>' +
+      ' data-src="https://www.instagram.com/' + esc(encodeURIComponent(ig)) + '/embed/"></iframe>' +
       '<a class="igbox-a" href="https://instagram.com/' + esc(encodeURIComponent(ig)) + '" target="_blank" rel="noopener">' +
       T('Buka profil', 'Open profile') + ' &rsaquo;</a></div>';
   }
@@ -409,12 +409,24 @@
   }
 
   /* Video kecil yang main di dalam tombol Our Showreel. Berkasnya sama dengan slide
-     pertama carousel, jadi diambil dari cache, bukan unduhan baru. */
+     pertama carousel, jadi biasanya sudah ada di cache.
+
+     Diputar berulang hanya REEL_BG_S detik pertama, bukan sampai habis. Ini bukan soal
+     rasa, tapi soal berat: kalau pengunjung meloncat langsung ke tab Contact lewat navbar
+     tanpa mampir ke Kenalan, berkasnya belum di cache, dan tanpa batas ini browser akan
+     menarik seluruh 71 detik hanya untuk sebuah strip setinggi 92px. */
+  var REEL_BG_S = 15;
   function playReelBg() {
     var v = document.querySelector('.reel-bg');
     if (!v) return;
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     v.muted = true;
+    if (!v.dataset.capped) {
+      v.dataset.capped = '1';
+      v.addEventListener('timeupdate', function () {
+        if (v.currentTime >= REEL_BG_S) v.currentTime = 0;
+      });
+    }
     v.play().catch(function () { /* poster tetap tampil */ });
   }
 
@@ -520,6 +532,7 @@
         pickTier(+b.dataset.tier);
       });
     });
+    armIg();
     if (el('burger')) tilt(el('burger'));
     if (el('car')) carousel(el('car'));
     if (el('tflats')) spyTiers();
@@ -576,6 +589,28 @@
     });
   }
   /* Tombol tier yang menempel di atas ikut menandai tier yang sedang dibaca. */
+  /* loading="lazy" saja tidak cukup: ambang Chrome longgar, di koneksi cepat iframe
+     ditarik sekitar 1250px sebelum masuk layar, jadi 373 KB dari instagram.com ikut
+     berebut pipa dengan video slide pertama. Src baru dipasang saat kotaknya betul
+     betul mendekat. Tanpa IntersectionObserver, dipasang langsung. */
+  var igSpy = null;
+  function armIg() {
+    var f = document.querySelector('.igframe');
+    if (!f || !f.dataset.src) return;
+    var load = function () {
+      if (!f.dataset.src) return;
+      f.src = f.dataset.src;
+      delete f.dataset.src;
+      if (igSpy) { igSpy.disconnect(); igSpy = null; }
+    };
+    if (!window.IntersectionObserver) { load(); return; }
+    if (igSpy) igSpy.disconnect();
+    igSpy = new IntersectionObserver(function (list) {
+      list.forEach(function (x) { if (x.isIntersecting) load(); });
+    }, { root: el('stage'), rootMargin: '250px 0px' });
+    igSpy.observe(f);
+  }
+
   var spy = null;
   function spyTiers() {
     if (spy) spy.disconnect();

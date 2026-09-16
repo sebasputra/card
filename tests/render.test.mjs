@@ -15,6 +15,14 @@ w.HTMLMediaElement.prototype.pause = function () {};
 w.HTMLMediaElement.prototype.load = function () {};
 // jsdom tidak punya scrollTo pada elemen; di browser ini ada
 w.Element.prototype.scrollTo = function () {};
+// jsdom tidak punya IntersectionObserver; stub ini dipakai supaya jalur malas ikut diuji
+const observers = [];
+w.IntersectionObserver = class {
+  constructor(cb) { this.cb = cb; observers.push(this); }
+  observe(el) { this.el = el; }
+  disconnect() { this.el = null; }
+  trigger() { this.cb([{ isIntersecting: true, target: this.el }]); }
+};
 w.eval(read('stephen-bni/data.js'));
 w.eval(read('assets/app.js'));
 
@@ -45,7 +53,7 @@ const langs = [...w.document.querySelectorAll('.langs button')].map((b) => b.id)
 check('EN sebelum ID di topnav', langs.join(',') === 'len,lid', langs.join(','));
 check('EN yang aktif', w.document.getElementById('len').className === 'on');
 // carousel() dipanggil saat render, harus sudah memasang src slide 1 dan mengintip slide 2
-check('slide 2 di-arm setelah render', vids[1].getAttribute('src') === 'img/intro.mp4',
+check('slide 2 di-arm setelah render', vids[1].getAttribute('src') === 'img/intro-v2.mp4',
   vids[1].getAttribute('src'));
 check('slide 2 preload metadata', vids[1].getAttribute('preload') === 'metadata',
   vids[1].getAttribute('preload'));
@@ -101,6 +109,13 @@ if (reel) {
     rbg.hasAttribute('muted') && rbg.hasAttribute('loop') && rbg.hasAttribute('playsinline'));
   check('video tombol disembunyikan dari pembaca layar',
     rbg.getAttribute('aria-hidden') === 'true' && rbg.getAttribute('tabindex') === '-1');
+  // dibatasi 15 detik supaya pengunjung yang loncat langsung ke Contact tidak menarik 71 detik penuh
+  rbg.currentTime = 16;
+  rbg.dispatchEvent(new w.Event('timeupdate'));
+  check('video tombol berputar ulang di detik 15', rbg.currentTime === 0, String(rbg.currentTime));
+  rbg.currentTime = 9;
+  rbg.dispatchEvent(new w.Event('timeupdate'));
+  check('sebelum 15 detik dibiarkan jalan', rbg.currentTime === 9, String(rbg.currentTime));
   check('label Our Showreel', reel.textContent.includes('Our Showreel'), reel.textContent.trim());
   check('bisa difokus keyboard', reel.getAttribute('role') === 'button' && reel.getAttribute('tabindex') === '0');
   check('ada di akhir, setelah Bagikan',
@@ -133,11 +148,24 @@ if (reel) {
 BC.go(steps.indexOf('intro'));
 const igf = w.document.querySelector('.igframe');
 check('embed Instagram ada di step Kenalan', !!igf);
+check('poster dan gambar slide sudah webp',
+  [...w.document.querySelectorAll('.car-slide video, .car-slide img')]
+    .every((n) => !/\.jpg$/.test(n.getAttribute('poster') || n.getAttribute('src') || '')),
+  [...w.document.querySelectorAll('.car-slide video, .car-slide img')]
+    .map((n) => (n.getAttribute('poster') || n.getAttribute('src'))).join(', '));
 if (igf) {
-  check('menunjuk profil Stephen',
-    igf.getAttribute('src') === 'https://www.instagram.com/stephenseptian/embed/',
-    igf.getAttribute('src'));
-  check('dimuat malas', igf.getAttribute('loading') === 'lazy');
+  check('belum punya src sebelum mendekat layar',
+    !igf.getAttribute('src') && igf.dataset.src === 'https://www.instagram.com/stephenseptian/embed/',
+    (igf.getAttribute('src') || 'kosong') + ' | ' + igf.dataset.src);
+  check('tetap diberi loading=lazy sebagai lapis kedua', igf.getAttribute('loading') === 'lazy');
+  const igo = observers.find((o) => o.el === igf);
+  check('diawasi IntersectionObserver', !!igo);
+  if (igo) {
+    igo.trigger();
+    check('src baru dipasang saat mendekat layar',
+      igf.getAttribute('src') === 'https://www.instagram.com/stephenseptian/embed/',
+      igf.getAttribute('src'));
+  }
   check('di bawah carousel, bukan di dalamnya',
     !igf.closest('.carousel') && !!w.document.querySelector('.step > .igbox'));
   // tinggi diatur dari pesan MEASURE milik Instagram, bukan angka tebakan
