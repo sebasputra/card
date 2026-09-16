@@ -179,7 +179,8 @@ var DATA = {
       "Prodiakon",
       "BPK PKK KAJ",
       "Perduki"
-    ]
+    ],
+    "slides": []
   },
   "refer": {
     "title_id": "How to Refer Me",

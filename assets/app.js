@@ -174,15 +174,20 @@
      karena browser HP menolak autoplay bersuara, tombol speaker menyalakan suara lewat ketukan.
      Dipakai dua kali, di step Kenalan dan di dalam overlay Our Showreel, tapi tidak pernah
      bersamaan karena satu step satu layar, jadi id "car" dan "vsound" tetap tunggal. */
-  function carouselHtml(extra, lead) {
+  /* list dan path dipakai carousel lain (My Ministry). Tanpa list, isinya slide Kenalan. */
+  function carouselHtml(extra, lead, list, path) {
     var hero = D.hero || {};
-    var slides = (Array.isArray(D.intro_slides) ? D.intro_slides : []).filter(function (s) { return s && has(s.src); });
+    var intro = !list;
+    var slides = (Array.isArray(intro ? D.intro_slides : list) ? (intro ? D.intro_slides : list) : [])
+      .filter(function (s) { return s && has(s.src); });
+    /* Hanya dua slide Kenalan pertama yang boleh bersuara, sisanya selalu senyap. Dihitung
+       sebelum video showreel ditaruh di depan, jadi di overlay yang bersuara klip 1 sampai 3. */
+    if (intro) slides = slides.map(function (s, i) { return i < SOUND_SLIDES ? s : { type: s.type, src: s.src, poster: s.poster, mute: true }; });
     if (lead && has(lead.src)) slides = [lead].concat(slides);
-    // hanya dua slide pertama carousel yang tampil yang boleh bersuara, sisanya selalu senyap
-    slides = slides.map(function (s, i) { return i < SOUND_SLIDES ? s : { type: s.type, src: s.src, poster: s.poster, mute: true }; });
     if (!slides.length) return '';
     var hasVid = slides.some(function (s) { return s.type === 'video'; });
-    return '<div class="portrait carousel' + (extra ? ' ' + extra : '') + '" id="car" aria-roledescription="carousel">' +
+    return '<div class="portrait carousel' + (extra ? ' ' + extra : '') + '" id="car" data-car="' + esc(path || extra || 'intro') + '"' +
+        (path ? ' data-slides="' + esc(path) + '"' : '') + ' aria-roledescription="carousel">' +
         '<div class="car-track">' + slides.map(function (s, i) {
           return '<div class="car-slide">' + (s.type === 'video'
             ? '<video class="car-media"' + (i === 0 ? ' src="' + esc(s.src) + '"' : '') +
@@ -311,8 +316,12 @@
       return '<div class="fact"><div class="fact-n"' + ed('offrecord.facts.' + i + '.n') + '>' + esc(f.n) + '</div>' +
         '<div class="fact-t"' + ed('offrecord.facts.' + i + '.' + lang, 1) + '>' + (f[lang] || f.id || f.en || '') + '</div></div>';
     }).join('');
+    /* Carousel foto dan video pelayanan. Kosong = tidak tampil, kecuali saat menyunting:
+       kotak kosong jadi tempat tombol Atur slide dari editor. */
+    var mcar = carouselHtml('mincar', null, m.slides, 'ministry.slides') ||
+      (editing() ? '<div class="portrait carousel mincar mincar-empty" data-slides="ministry.slides"></div>' : '');
     return '<div class="step">' +
-      h2(L(m, 'title'), lp('ministry', 'title')) + chips(m.chips, 'ministry.chips') +
+      h2(L(m, 'title'), lp('ministry', 'title')) + mcar + chips(m.chips, 'ministry.chips') +
       '<div style="height:26px"></div>' + h2(L(o, 'title'), lp('offrecord', 'title')) +
       '<div class="facts" data-arr="offrecord.facts" data-kind="fact">' + facts + '</div></div>';
   };
@@ -700,7 +709,7 @@
   /* Carousel step Kenalan. Geser jari memakai scroll-snap bawaan browser, jadi rasanya sama
      seperti Instagram. Maju sendiri saat video selesai atau setelah 5 detik untuk gambar,
      dan kembali ke slide pertama setelah slide terakhir. Posisi slide diingat saat render ulang. */
-  var carIndex = 0, carTimer = null;
+  var carIndex = 0, carTimer = null, carKey = null;
   var IMG_MS = 5000;
   function carousel(box) {
     var track = box.querySelector('.car-track');
@@ -709,6 +718,8 @@
     var sb = el('vsound');
     var n = slides.length;
     clearTimeout(carTimer);
+    // posisi hanya diingat untuk carousel yang sama, carousel lain mulai dari slide pertama
+    if (box.dataset.car !== carKey) { carKey = box.dataset.car; carIndex = 0; }
     if (carIndex > n - 1) carIndex = 0;
 
     function media(i) { return slides[i] && slides[i].querySelector('video'); }

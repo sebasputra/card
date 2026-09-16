@@ -355,6 +355,7 @@
     }).join('');
 
     var hasSlides = Array.isArray(BC.data().intro_slides);
+    var hasMin = !!BC.stepDef.personal;
 
     sheet(
       '<div class="ed-h">' + T('Atur Urutan', 'Arrange') + '</div>' +
@@ -364,6 +365,9 @@
       (hasSlides
         ? '<div class="ed-col"><button class="ed-btn" data-a="slides">' +
           T('Slide di Kenalan', 'Slides in Intro') + ' &rsaquo;</button></div>' : '') +
+      (hasMin
+        ? '<div class="ed-col"><button class="ed-btn" data-a="minslides">' +
+          T('Slide di My Ministry', 'Slides in My Ministry') + ' &rsaquo;</button></div>' : '') +
       '<div class="ed-sep"></div>' +
       '<div class="ed-col">' +
       '<button class="ed-btn" data-a="setdef">' + T('Jadikan patokan', 'Save as baseline') + '</button>' +
@@ -379,6 +383,8 @@
         });
         var sl = s.querySelector('[data-a="slides"]');
         if (sl) sl.addEventListener('click', function () { closeSheet(); openSlides(); });
+        var ms = s.querySelector('[data-a="minslides"]');
+        if (ms) ms.addEventListener('click', function () { closeSheet(); openSlides('ministry.slides'); });
         s.querySelector('[data-a="setdef"]').addEventListener('click', function () { closeSheet(); askSetDefault(); });
         s.querySelector('[data-a="getdef"]').addEventListener('click', function () { closeSheet(); askGetDefault(); });
         s.querySelector('[data-a="revert"]').addEventListener('click', function () {
@@ -404,9 +410,13 @@
     );
   }
 
-  /* ================= lembar slide Kenalan =================
-     Urutan dan hapus saja. Menambah slide hanya untuk gambar, karena /api/upload
-     memang cuma menerima gambar. Video baru tetap lewat repo. */
+  /* ================= lembar slide carousel =================
+     Urutan, hapus, tambah gambar, dan tambah video. Gambar lewat /api/upload,
+     video langsung ke Vercel Blob karena terlalu besar untuk body function. */
+  var SLIDE_LISTS = {
+    intro_slides: ['Slide di Kenalan', 'Slides in Intro'],
+    'ministry.slides': ['Slide di My Ministry', 'Slides in My Ministry']
+  };
   function slideTile(sl, i) {
     var thumb = sl.type === 'video' ? sl.poster : sl.src;
     var name = (sl.type === 'video' ? T('Video', 'Video') : T('Gambar', 'Image')) + ' ' + (i + 1);
@@ -418,18 +428,27 @@
       '<button class="ed-eye ed-del" aria-label="' + T('Hapus slide', 'Remove slide') + '">&times;</button></div>';
   }
 
-  function openSlides() {
-    var arr = BC.data().intro_slides;
-    if (!Array.isArray(arr)) return;
+  function openSlides(path) {
+    path = path || 'intro_slides';
+    var arr = pget(BC.data(), path);
+    if (!Array.isArray(arr)) {
+      // carousel baru (misalnya My Ministry) belum punya daftar, dibuat saat pertama dibuka
+      if (path === 'intro_slides') return;
+      arr = [];
+      pset(BC.data(), path, arr);
+    }
+    var title = SLIDE_LISTS[path] || SLIDE_LISTS.intro_slides;
+    var again = function () { openSlides(path); };
     var EMPTY = '<p class="ed-sub" style="margin:0">' + T('Belum ada slide.', 'No slides yet.') + '</p>';
 
     sheet(
-      '<div class="ed-h">' + T('Slide di Kenalan', 'Slides in Intro') + '</div>' +
+      '<div class="ed-h">' + T(title[0], title[1]) + '</div>' +
       '<p class="ed-sub">' + T('Tekan agak lama lalu geser untuk memindahkan. Tombol silang menghapus slide.',
         'Press and hold, then drag to move. The cross removes a slide.') + '</p>' +
       '<div class="ed-tiles ed-live" id="edslides">' + (arr.length ? arr.map(slideTile).join('') : EMPTY) + '</div>' +
       '<div class="ed-col"><button class="ed-btn" data-a="addimg">+ ' +
-      T('Tambah gambar', 'Add image') + '</button></div>' +
+      T('Tambah gambar', 'Add image') + '</button>' +
+      '<button class="ed-btn" data-a="addvid">+ ' + T('Tambah video', 'Add video') + '</button></div>' +
       '<div class="ed-row">' +
       '<button class="ed-btn" data-a="back">' + T('Kembali', 'Back') + '</button>' +
       '<button class="ed-btn primary" data-a="ok">' + T('Selesai', 'Done') + '</button></div>',
@@ -443,8 +462,14 @@
         s.querySelector('[data-a="addimg"]').addEventListener('click', function () {
           closeSheet();
           chooseImage(function (url) {
-            BC.data().intro_slides.push({ type: 'image', src: url });
-          }, function () { openSlides(); });
+            arr.push({ type: 'image', src: url });
+          }, again);
+        });
+        s.querySelector('[data-a="addvid"]').addEventListener('click', function () {
+          closeSheet();
+          chooseVideo(function (url) {
+            arr.push({ type: 'video', src: url });
+          }, again);
         });
         box.addEventListener('click', function (e) {
           var x = e.target.closest('.ed-del');
@@ -906,6 +931,69 @@
     });
   }
 
+  /* Video dikirim langsung dari browser ke Vercel Blob. /api/upload-video hanya
+     membagikan token sekali pakai setelah sesi editor diperiksa. Pustaka klien Blob
+     dimuat saat dibutuhkan saja, jadi pengunjung biasa tidak ikut mengunduhnya. */
+  var MAX_VIDEO = 50 * 1024 * 1024;
+  var BLOB_CLIENT = 'https://esm.sh/@vercel/blob@2.8.0/client?target=es2020';
+  function pickVideo(cb) {
+    var inp = document.createElement('input');
+    inp.type = 'file';
+    inp.accept = 'video/mp4,video/quicktime,video/webm';
+    inp.style.display = 'none';
+    inp.addEventListener('change', function () {
+      var f = inp.files && inp.files[0];
+      inp.remove();
+      if (f) cb(f);
+    });
+    document.body.appendChild(inp);
+    inp.click();
+  }
+  function uploadVideo(file, progress) {
+    if (file.size > MAX_VIDEO) {
+      return Promise.reject(new Error(T('Video terlalu besar, maksimal 50 MB.', 'Video too large, 50 MB max.')));
+    }
+    var ext = /quicktime/.test(file.type) ? 'mov' : /webm/.test(file.type) ? 'webm' : 'mp4';
+    return import(BLOB_CLIENT).then(function (blob) {
+      return blob.upload('cards/' + CARD + '/video.' + ext, file, {
+        access: 'public',
+        handleUploadUrl: API + '/upload-video',
+        headers: { 'X-Card': CARD, Authorization: 'Bearer ' + token },
+        contentType: file.type || 'video/mp4',
+        multipart: file.size > 8 * 1024 * 1024,
+        onUploadProgress: function (e) { if (progress) progress(e.percentage); }
+      });
+    }, function () {
+      throw new Error(T('Gagal memuat pengunggah video.', 'Could not load the video uploader.'));
+    }).then(function (r) { return r.url; }, function (err) {
+      var msg = String((err && err.message) || '');
+      if (/401|sesi/i.test(msg)) logout();
+      throw new Error(msg || T('Gagal mengunggah video.', 'Video upload failed.'));
+    });
+  }
+  function chooseVideo(apply, after) {
+    if (busy) return;
+    pickVideo(function (file) {
+      if (busy) return;
+      busy = true;
+      var t = toast(T('Mengunggah video...', 'Uploading video...'), 'wait');
+      uploadVideo(file, function (pct) {
+        t.textContent = T('Mengunggah video... ', 'Uploading video... ') + Math.round(pct) + '%';
+      }).then(function (url) {
+        busy = false;
+        if (t.parentNode) t.remove();
+        apply(url);
+        saveDraft();
+        BC.render();
+        if (after) after();
+      }).catch(function (err) {
+        busy = false;
+        if (t.parentNode) t.remove();
+        toast((err && err.message) || T('Gagal mengunggah video.', 'Video upload failed.'), 'bad');
+      });
+    });
+  }
+
   function chooseImage(apply, after) {
     if (busy) return;
     pickImage(function (file) {
@@ -945,6 +1033,22 @@
     });
   }
 
+  /* Tombol Atur slide di bawah carousel yang punya data-slides. */
+  function wireSlides(root) {
+    Array.prototype.forEach.call(root.querySelectorAll('[data-slides]'), function (nd) {
+      var b = document.createElement('button');
+      b.className = 'ed-add ed-img-btn';
+      b.type = 'button';
+      b.textContent = T('Atur foto dan video', 'Manage photos and videos');
+      b.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        openSlides(nd.dataset.slides);
+      });
+      nd.parentNode.insertBefore(b, nd.nextSibling);
+    });
+  }
+
   /* ================= gambar ulang lapisan editor ================= */
   function paint() {
     var a = app();
@@ -956,6 +1060,7 @@
     wireText(a);
     wireArrays(a);
     wireMedia(a);
+    wireSlides(a);
     a.appendChild(buildBar());
   }
 

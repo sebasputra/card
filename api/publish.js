@@ -28,9 +28,10 @@ function checkMedia(data) {
   for (const k of Object.keys(imgs)) {
     if (imgs[k] && !okSrc(imgs[k])) return 'Alamat gambar tidak diizinkan (' + k + ').';
   }
-  if (data.intro_slides != null) {
-    if (!Array.isArray(data.intro_slides)) return 'Slide tidak valid.';
-    for (const s of data.intro_slides) {
+  for (const list of [data.intro_slides, data.ministry && data.ministry.slides]) {
+    if (list == null) continue;
+    if (!Array.isArray(list)) return 'Slide tidak valid.';
+    for (const s of list) {
       if (!s || typeof s !== 'object' || (s.type !== 'image' && s.type !== 'video') ||
           !okSrc(s.src) || (s.poster && !okSrc(s.poster))) return 'Slide tidak valid.';
     }

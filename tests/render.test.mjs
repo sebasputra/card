@@ -101,6 +101,20 @@ while (dotOn() !== 0) klik('.car-nav.next');
 check('slide pertama bersuara', cv[0].muted === false);
 klik('#vsound');
 
+// ---- My Ministry: carousel kosong tidak tampil, yang berisi tampil di antara judul dan chip
+BC.go(steps.indexOf('personal'));
+check('ministry tanpa slide: tidak ada carousel', !w.document.querySelector('.mincar'));
+w.DATA.ministry.slides = [{ type: 'image', src: 'img/slide2.webp' }, { type: 'video', src: 'img/slide4.mp4' }];
+BC.go(steps.indexOf('personal'));
+const mc = w.document.querySelector('.mincar');
+check('ministry dengan slide: carousel tampil', !!mc && mc.querySelectorAll('.car-slide').length === 2);
+check('carousel ministry di antara judul dan chip',
+  mc && mc.previousElementSibling.classList.contains('h2') && mc.nextElementSibling.classList.contains('chips'),
+  mc && (mc.previousElementSibling.className + ' / ' + mc.nextElementSibling.className));
+check('carousel ministry mulai dari slide pertama', mc && mc.querySelector('.car-dots i').classList.contains('on'));
+check('video ministry tidak dibungkam', mc && !mc.querySelector('video').dataset.mute);
+w.DATA.ministry.slides = [];
+
 // ---- cover: foto hi-res + deret pin
 BC.go(0);
 const ringImg = w.document.querySelector('.ring-img');
@@ -197,6 +211,9 @@ if (reel) {
   check('overlay juga punya tombol maju mundur',
     m.querySelectorAll('.reelcar .car-nav').length === 2);
   check('tombol suara ikut ada', !!m.querySelector('#vsound'));
+  check('overlay: hanya klip 1 sampai 3 yang bersuara',
+    [...m.querySelectorAll('.car-slide video')].map((v) => v.dataset.mute === '1').join(',') === 'false,false,false,true,true',
+    [...m.querySelectorAll('.car-slide video')].map((v) => v.dataset.mute || '-').join(','));
   check('tidak ada lagi .reelv tunggal', !m.querySelector('.reelv'));
   check('video tombol dihentikan selagi overlay terbuka', rbg.paused);
 
