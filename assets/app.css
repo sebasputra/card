@@ -278,22 +278,25 @@ body::after{
   font-family:var(--b);font-size:21px;line-height:1;
   align-items:center;justify-content:center;
   box-shadow:0 2px 9px rgba(0,0,0,.28);
-  opacity:0;transform:translateY(-50%);
+  opacity:.82;transform:translateY(-50%);
   transition:opacity .2s ease,transform .12s ease,background .2s ease;
 }
 .car-nav.prev{left:10px}
 .car-nav.next{right:10px}
+.reelcar .car-nav{width:42px;height:42px;font-size:26px}
+.reelcar .car-nav.prev{left:18px}
+.reelcar .car-nav.next{right:18px}
+/* Tampil di semua perangkat, bukan cuma yang bertetikus. Di HP geser jari tetap jalan,
+   tapi tombolnya membantu dan itu lazim di web Instagram. */
+.carousel .car-nav{display:flex}
+.car-nav:active{transform:translateY(-50%) scale(.93)}
 @media (hover:hover) and (pointer:fine){
-  .carousel .car-nav{display:flex}
+  .carousel .car-nav{opacity:0}
   .carousel:hover .car-nav,
   .car-nav:focus-visible{opacity:1}
   .car-nav:hover{background:#fff;transform:translateY(-50%) scale(1.07)}
-  .car-nav:active{transform:translateY(-50%) scale(.93)}
-  /* di overlay layar penuh tombolnya langsung terlihat, tidak perlu ditunggu hover */
-  .reelcar .car-nav{opacity:.78;width:42px;height:42px;font-size:26px}
+  .reelcar .car-nav{opacity:.78}
   .reelcar.carousel:hover .car-nav{opacity:1}
-  .reelcar .car-nav.prev{left:18px}
-  .reelcar .car-nav.next{right:18px}
 }
 @media (prefers-reduced-motion: reduce){
   .car-nav{transition:opacity .2s ease}
@@ -493,11 +496,23 @@ body::after{
   transform:none;
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.45),inset 0 -12px 22px rgba(0,0,0,.16),0 20px 44px rgba(0,0,0,.16);
 }
-/* nama dikembalikan tegak lurus layar saat miring, sama seperti .slab .nm */
+/* Nama dikembalikan tegak lurus layar saat miring, sama seperti .slab .nm.
+
+   translateZ di depan itu wajib, bukan hiasan. rotateX(-58deg) membuat teks berdiri seperti
+   papan reklame yang berpusat di tengah piringan, jadi separuh papannya berada di depan bidang
+   piringan dan separuh lagi di belakangnya. Yang menutupi separuh bawah itu bidang latar
+   piringan sendiri di z=0, bukan .tdisc::before yang ada jauh di belakang pada -17px.
+   Di .slab .nm fontnya 17px sehingga bagian yang tenggelam cuma sekitar 9px dan tersamarkan
+   text-shadow, tapi di sini fontnya 30px sehingga sekitar 15px teks benar-benar terpotong.
+   translateZ mengangkat seluruh papan ke depan bidang piringan. Ditulis paling kiri supaya
+   berlaku di ruang piringan, yaitu sepanjang garis normal piringan, bukan ke arah pandang
+   papan itu sendiri. Nilainya harus lebih besar dari setengah tinggi teks dikali sin(58deg),
+   sekitar 15px, jadi 22px memberi sedikit kelonggaran. */
 .tdisc b{
   display:inline-block;font-family:var(--h);font-weight:700;font-size:30px;letter-spacing:-.038em;
   color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.35);
-  transform:rotateZ(16deg) rotateX(-58deg);transition:transform .8s cubic-bezier(.3,.9,.3,1);
+  transform:translateZ(22px) rotateZ(16deg) rotateX(-58deg);
+  transition:transform .8s cubic-bezier(.3,.9,.3,1);
 }
 .tflat.on .tdisc b{transform:none}
 .tier-lvl{font-size:14px;line-height:1.42859;letter-spacing:-.016em;color:var(--dm);margin-top:18px}
