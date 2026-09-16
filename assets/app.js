@@ -45,6 +45,8 @@
     hand: '<path d="M9.2 11.5a3.35 3.35 0 1 0 0-6.7 3.35 3.35 0 0 0 0 6.7Z" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M2.9 19.6a6.3 6.3 0 0 1 12.6 0" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M16.3 5.3a3.35 3.35 0 0 1 0 6.4M17.6 14.3a6.3 6.3 0 0 1 3.5 5.1" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
     chat: '<path d="M20.4 14.3a2.3 2.3 0 0 1-2.3 2.3H8.5L4 20.6V5.9a2.3 2.3 0 0 1 2.3-2.3h11.8a2.3 2.3 0 0 1 2.3 2.3Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>'
   };
+  ICON.play = '<path d="M9 7.5v9l7.5-4.5z" fill="currentColor"/>';
+  ICON.close = '<path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>';
   ICON.soundOff = '<path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="m16 9.5 5 5M21 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>';
   ICON.soundOn = '<path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16.5 8.8a4.6 4.6 0 0 1 0 6.4M19 6.3a8.2 8.2 0 0 1 0 11.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>';
   function svg(n, c) { return '<svg class="' + (c || '') + '" viewBox="0 0 24 24" aria-hidden="true">' + ICON[n] + '</svg>'; }
@@ -140,6 +142,18 @@
 
   var view = {};
 
+  /* Deretan pin BNI. Sumbernya satu array dipakai di dua tempat, cover dan step BNI,
+     dan keduanya tidak pernah dirender bersamaan karena satu step satu layar. */
+  function pinRow() {
+    var arr = Array.isArray(D.pins) ? D.pins : [];
+    if (!arr.length && !editing()) return '';
+    return '<div class="pins" data-arr="pins" data-kind="pin">' +
+      arr.map(function (p, i) {
+        return '<span class="pin">' +
+          '<img src="' + esc(p.src) + '" alt="' + esc(p.alt || '') + '" loading="lazy"></span>';
+      }).join('') + '</div>';
+  }
+
   view.cover = function () {
     var hero = D.hero || {}, img = (D.images || {}).cover || (D.images || {}).hero;
     var inner = has(img)
@@ -147,6 +161,7 @@
       : '<span class="ring-ini">' + esc(hero.initials || '') + '</span>';
     return '<div class="cover">' +
       '<div class="ring" data-img="images.cover">' + inner + '</div>' +
+      pinRow() +
       '<div class="cover-kicker"' + ed(lp('hero', 'connector')) + '>' + esc(L(hero, 'connector')) + '</div>' +
       '<h1 class="cover-name"' + ed('hero.name') + '>' + esc(hero.name || '') + '</h1>' +
       '<p class="cover-role"' + ed(lp('hero', 'role')) + '>' + esc(L(hero, 'role')) + '</p>' +
@@ -166,8 +181,9 @@
       ? '<div class="portrait carousel" id="car" aria-roledescription="carousel">' +
         '<div class="car-track">' + slides.map(function (s, i) {
           return '<div class="car-slide">' + (s.type === 'video'
-            ? '<video class="car-media" src="' + esc(s.src) + '"' + (has(s.poster) ? ' poster="' + esc(s.poster) + '"' : '') +
-              ' muted playsinline preload="' + (i === 0 ? 'auto' : 'metadata') + '"' + (slides.length === 1 ? ' loop' : '') +
+            ? '<video class="car-media"' + (i === 0 ? ' src="' + esc(s.src) + '"' : '') +
+              ' data-src="' + esc(s.src) + '"' + (has(s.poster) ? ' poster="' + esc(s.poster) + '"' : '') +
+              ' muted playsinline preload="' + (i === 0 ? 'auto' : 'none') + '"' + (slides.length === 1 ? ' loop' : '') +
               ' aria-label="' + esc(hero.name || '') + '"></video>'
             : '<img class="car-media" src="' + esc(s.src) + '" alt="" draggable="false">') + '</div>';
         }).join('') + '</div>' +
@@ -205,6 +221,7 @@
         ? ' <span style="color:var(--dm)">est. <span' + ed('bisnis.sejak') + '>' + esc(biz.sejak) + '</span></span>' : ''),
       '');
     return '<div class="step">' + h2(T('Keanggotaan', 'Membership')) +
+      pinRow() +
       '<div class="meta">' + rows + '</div><!--blocks-->' + chips(b.status, 'bni.status') +
       (has(L(biz, 'layanan')) || editing()
         ? '<p class="p"' + ed(lp('bisnis', 'layanan'), 1) + '>' + L(biz, 'layanan') + '</p>' : '') +
@@ -314,9 +331,52 @@
       '<div class="contact">' + rows + '</div>' +
       '<button class="nextlink" id="share">' + T('Bagikan kartu ini', 'Share this card') +
       '<span>' + svg('share') + '</span></button>' +
+      reelBtn() +
+      (has((D.images || {}).logo)
+        ? '<img class="foot-logo" src="' + esc((D.images || {}).logo) + '" alt="Increasink" data-img="images.logo">' : '') +
       '<p class="p" style="font-size:12.5px">' + esc(hero.name || '') + ' &middot; ' + esc((D.bisnis || {}).nama || '') + '</p>' +
       '</div>';
   };
+
+  /* ---------- showreel ----------
+     Latar tombol memakai poster slide yang sama, jadi tidak ada berkas baru yang diunduh.
+     Videonya pun src yang sama, sehingga diambil dari cache browser. */
+  function reelBtn() {
+    var r = D.showreel || {};
+    if (!has(r.src) && !editing()) return '';
+    return '<div class="reel" id="reel" role="button" tabindex="0"' +
+      (has(r.poster) ? ' style="--reel-img:url(' + esc(r.poster) + ')"' : '') + '>' +
+      '<span class="reel-ic">' + svg('play') + '</span>' +
+      '<span class="reel-t"><b' + ed(lp('showreel', 'label')) + '>' + esc(L(r, 'label') || 'Our Showreel') + '</b>' +
+      (has(L(r, 'note')) || editing()
+        ? '<i' + ed(lp('showreel', 'note')) + '>' + esc(L(r, 'note')) + '</i>' : '') +
+      '</span></div>';
+  }
+
+  function reelOpen() {
+    var r = D.showreel || {}, m = el('modal');
+    if (!has(r.src)) return;
+    m.className = 'modal full show';
+    m.innerHTML = '<div class="reelbox" role="dialog" aria-modal="true" aria-label="' +
+      esc(L(r, 'label') || 'Our Showreel') + '">' +
+      '<video class="reelv" src="' + esc(r.src) + '"' +
+      (has(r.poster) ? ' poster="' + esc(r.poster) + '"' : '') +
+      ' playsinline controls preload="auto"></video>' +
+      '<button class="reel-x" id="reelx" aria-label="' + T('Tutup', 'Close') + '">' + svg('close') + '</button></div>';
+    m.onclick = function (e) { if (e.target === m || e.target.closest('#reelx')) reelClose(); };
+    var v = m.querySelector('.reelv');
+    v.muted = false;
+    // dibuka lewat ketukan, jadi suara boleh langsung. Kalau tetap ditolak, jalan tanpa suara.
+    v.play().catch(function () { v.muted = true; v.play().catch(function () {}); });
+  }
+
+  function reelClose() {
+    var m = el('modal'), v = m.querySelector('.reelv');
+    if (v) v.pause();
+    m.className = 'modal';
+    m.innerHTML = '';
+    m.onclick = null;
+  }
 
   /* ---------- shell ---------- */
   function render() {
@@ -330,8 +390,8 @@
       : '<div class="topnav">' +
         '<button class="back" id="back" aria-label="' + T('Kembali', 'Back') + '">&lsaquo;</button>' +
         '<div class="track" role="progressbar" aria-valuenow="' + pct + '" aria-valuemin="0" aria-valuemax="100"><i style="width:' + pct + '%"></i></div>' +
-        '<div class="langs"><button id="lid" class="' + (lang === 'id' ? 'on' : '') + '">ID</button>' +
-        '<button id="len" class="' + (lang === 'en' ? 'on' : '') + '">EN</button></div></div>';
+        '<div class="langs"><button id="len" class="' + (lang === 'en' ? 'on' : '') + '">EN</button>' +
+        '<button id="lid" class="' + (lang === 'id' ? 'on' : '') + '">ID</button></div></div>';
 
     var footer;
     if (s.key === 'cover') {
@@ -385,6 +445,14 @@
     if (el('back')) el('back').addEventListener('click', back);
     if (el('wa')) el('wa').addEventListener('click', waOpen);
     if (el('share')) el('share').addEventListener('click', share);
+    if (el('reel')) {
+      el('reel').addEventListener('click', function () { if (!editing()) reelOpen(); });
+      el('reel').addEventListener('keydown', function (e) {
+        if (editing() || (e.key !== 'Enter' && e.key !== ' ')) return;
+        e.preventDefault();
+        reelOpen();
+      });
+    }
     var nv = el('nav');
     if (nv) nv.addEventListener('click', function (e) {
       var b = e.target.closest('button'); if (!b) return;
@@ -516,6 +584,15 @@
     if (carIndex > n - 1) carIndex = 0;
 
     function media(i) { return slides[i] && slides[i].querySelector('video'); }
+    /* Hanya slide pertama yang punya src sejak awal. Sisanya dipasang saat gilirannya dekat,
+       supaya di sinyal lemah seluruh jalur dipakai video yang sedang ditonton, bukan dibagi empat. */
+    function arm(i, pre) {
+      var v = media(i);
+      if (!v) return null;
+      if (!v.getAttribute('src') && v.dataset.src) v.src = v.dataset.src;
+      if (pre) v.preload = pre;
+      return v;
+    }
     function alive() { return document.body.contains(track); }
     function activate(i) {
       clearTimeout(carTimer);
@@ -525,10 +602,11 @@
         var o = media(j);
         if (o && j !== i && !o.paused) { o.pause(); o.currentTime = 0; }
       });
-      var v = media(i);
+      var v = arm(i, 'auto');
       if (sb) sb.hidden = !v;   // gambar tidak punya suara
-      if (v) { v.muted = !introSound; playVid(v); }
+      if (v) { v.volume = 1; v.muted = !introSound; playVid(v); }
       else if (n > 1) carTimer = setTimeout(function () { if (alive()) next(); }, IMG_MS);
+      if (n > 1) arm((i + 1) % n, 'metadata');   // cuma header, bukan seluruh berkas
     }
     function next() {
       if (n < 2 || !alive()) return;
@@ -551,8 +629,23 @@
     }, { passive: true });
     if (sb) sb.addEventListener('click', function () {
       introSound = !introSound;
-      var v = media(carIndex);
-      if (v) { v.muted = !introSound; playVid(v); }
+      var v = arm(carIndex, 'auto');
+      if (v) { v.volume = 1; v.muted = !introSound; playVid(v); }
+      /* Browser, terutama Safari iOS, hanya mengizinkan video bersuara yang pernah diputar
+         lewat ketukan. Selagi masih di dalam ketukan ini, video lain diputar sebentar dengan
+         volume 0 lalu dihentikan, supaya nanti boleh bersuara saat carousel maju sendiri. */
+      if (introSound) slides.forEach(function (s, j) {
+        var o = arm(j);
+        if (!o || j === carIndex) return;
+        o.volume = 0;
+        o.muted = false;
+        var pr = o.play();
+        var done = function () {
+          if (j !== carIndex) { o.pause(); o.currentTime = 0; }
+          o.volume = 1;
+        };
+        if (pr && pr.then) pr.then(done, done); else done();
+      });
       paintSound(sb);
     });
     track.scrollLeft = carIndex * track.clientWidth;
@@ -638,7 +731,13 @@
   }
   document.addEventListener('keydown', function (e) {
     if (editing()) return;
-    if (el('modal') && el('modal').classList.contains('show')) return;
+    if (el('modal') && el('modal').classList.contains('show')) {
+      if (e.key === 'Escape') {
+        if (el('modal').querySelector('.reelv')) reelClose();
+        else el('modal').classList.remove('show');
+      }
+      return;
+    }
     if (e.key === 'ArrowRight') next();
     if (e.key === 'ArrowLeft') back();
   });
@@ -646,6 +745,7 @@
   /* ---------- whatsapp ---------- */
   function waOpen() {
     var f = D.wa_form || {}, m = el('modal');
+    m.className = 'modal';
     var fields = (f.fields || []).map(function (fd) {
       return '<div class="fld"><label for="f_' + esc(fd.key) + '">' + esc(L(fd, 'label')) + '</label>' +
         '<input id="f_' + esc(fd.key) + '" autocomplete="' + esc(fd.autocomplete || 'off') + '"></div>';

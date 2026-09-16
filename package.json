@@ -5,5 +5,11 @@
   "description": "Kartu nama digital Increasink. Situs statis plus endpoint editor di Vercel.",
   "dependencies": {
     "@vercel/blob": "^2.8.0"
+  },
+  "devDependencies": {
+    "jsdom": "^30.0.1"
+  },
+  "scripts": {
+    "test": "node tests/render.test.mjs && node tests/editor.test.mjs"
   }
 }

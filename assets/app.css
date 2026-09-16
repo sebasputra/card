@@ -32,6 +32,13 @@
   --b:'Helvetica Neue',Helvetica,-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
   /* ruang dan radius */
   --pad:26px;
+  /* lebar isi kartu. Di layar lebar permukaannya penuh layar, isinya tetap selebar ini. */
+  --col:440px;
+  /* crop kepala dan bahu, dipakai bareng .ring-img dan .wa-av img.
+     Disetel ulang 16 Sep 2026 untuk foto stephen-hd.jpg yang framing-nya lebih rapat
+     dari stephen.png lama. Kalau fotonya diganti lagi, dua angka ini yang disetel. */
+  --ava-scale:1.25;
+  --ava-origin:50% 10%;
   --r:22px;
   --r-s:14px;
 }
@@ -97,7 +104,7 @@ body::after{
 
 /* ---------- shell, kaca di atas gradient ---------- */
 .app{
-  position:relative;z-index:1;width:100%;max-width:440px;margin:0 auto;
+  position:relative;z-index:1;width:100%;max-width:var(--col);margin:0 auto;
   height:100dvh;background:rgba(255,255,255,.46);
   display:flex;flex-direction:column;overflow:hidden;
 }
@@ -207,7 +214,7 @@ body::after{
    kepala dan bahu. */
 .ring-img{
   width:100%;height:100%;object-fit:cover;object-position:center top;
-  transform:scale(1.65);transform-origin:44% 15%;position:relative;z-index:1;
+  transform:scale(var(--ava-scale));transform-origin:var(--ava-origin);position:relative;z-index:1;
 }
 .ring-ini{font-family:var(--h);font-weight:600;font-size:58px;color:var(--ink);letter-spacing:-.02em}
 /* eyebrow Apple: besar, bukan huruf kapital semua, tracking positif, diberi gradient warna */
@@ -316,8 +323,10 @@ body::after{
 
 /* ---------- lists, chips ---------- */
 .list{margin-top:18px;display:flex;flex-direction:column;gap:14px}
-.list li{list-style:none;display:grid;grid-template-columns:6px 1fr;gap:14px;font-size:16px;line-height:1.5;letter-spacing:-.02em;color:var(--mu)}
-.list li::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--ink);opacity:.3;margin-top:10px}
+/* Bulatnya diposisikan absolut, bukan kolom grid. Dengan grid, teks polos yang mengikuti
+   <b> dihitung sebagai item terpisah dan jatuh ke kolom bulat yang lebarnya 6px. */
+.list li{list-style:none;display:block;position:relative;padding-left:20px;font-size:16px;line-height:1.5;letter-spacing:-.02em;color:var(--mu)}
+.list li::before{content:"";position:absolute;left:0;top:10px;width:5px;height:5px;border-radius:50%;background:var(--ink);opacity:.3}
 .list li b{color:var(--ink);font-weight:600}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
 .chip{
@@ -517,6 +526,60 @@ body::after{
   transition:background .25s;
 }
 .nextlink:hover{background:rgba(255,255,255,.75)}
+
+/* ---------- showreel ----------
+   Latarnya poster slide yang sama, jadi tidak ada berkas tambahan yang diunduh.
+   Gambarnya lewat --reel-img supaya gradien gelapnya tidak ikut tertimpa style inline. */
+.reel{
+  margin-top:12px;width:100%;min-height:92px;cursor:pointer;position:relative;overflow:hidden;
+  border:1px solid rgba(255,255,255,.18);border-radius:var(--r-s);
+  /* Gradien ditipiskan ke kanan supaya frame reelnya benar-benar kelihatan. Posisi
+     46% jatuh di pita gambar 2,2:1 milik video, bukan di bar hitam atas bawahnya. */
+  background-image:linear-gradient(90deg,rgba(0,0,0,.90) 0%,rgba(0,0,0,.70) 48%,rgba(0,0,0,.18) 100%),var(--reel-img,none);
+  background-size:cover,cover;background-position:center,center 46%;
+  display:flex;align-items:center;gap:14px;padding:0 18px;text-align:left;
+  transition:border-color .25s;
+}
+.reel:hover{border-color:rgba(255,255,255,.42)}
+.reel:focus-visible{outline:2px solid rgba(255,255,255,.7);outline-offset:2px}
+.reel-ic{
+  flex:none;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.94);color:#101010;
+  display:flex;align-items:center;justify-content:center;
+}
+.reel-ic svg{width:21px;height:21px}
+.reel-t{display:flex;flex-direction:column;gap:1px;min-width:0}
+.reel-t b{font-family:var(--b);font-size:17px;line-height:1.4;letter-spacing:-.022em;font-weight:600;color:#fff}
+.reel-t i{font-style:normal;font-size:12.5px;line-height:1.4;letter-spacing:.01em;color:rgba(255,255,255,.62)}
+
+/* Layar penuh dipakai overlay CSS, bukan Fullscreen API: Safari iOS hanya mengizinkan
+   webkitEnterFullscreen pada video dan itu mengambil alih tampilan dengan player bawaan. */
+.modal.full{align-items:center;justify-content:center;background:#000;-webkit-backdrop-filter:none;backdrop-filter:none}
+.reelbox{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#000}
+.reelv{width:100%;height:100%;object-fit:contain;background:#000}
+.reel-x{
+  position:absolute;z-index:2;top:calc(14px + env(safe-area-inset-top,0px));right:14px;
+  width:36px;height:36px;border:none;border-radius:50%;cursor:pointer;padding:0;
+  background:rgba(255,255,255,.18);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+}
+.reel-x svg{width:20px;height:20px}
+
+/* ---------- pin BNI ---------- */
+.pins{display:flex;flex-wrap:wrap;align-items:center;gap:13px;margin:0 0 22px}
+.cover .pins{justify-content:center;margin:-10px 0 24px}
+.pin{display:block;width:46px;height:46px;flex:none}
+.pin img{
+  width:100%;height:100%;display:block;object-fit:contain;
+  filter:drop-shadow(0 2px 6px rgba(0,0,0,.20));
+}
+
+/* logo di kaki Let's Connect. Logonya hitam di atas transparan, jadi di step
+   gelap dibalik lewat filter, bukan dengan menyiapkan berkas putih terpisah. */
+.foot-logo{display:block;height:28px;width:auto;margin:30px 0 12px;opacity:.72}
+.dark .foot-logo{filter:invert(1)}
+
+}
 .nextlink span{color:var(--dm);font-weight:400}
 .dark .nextlink{background:rgba(245,245,247,.10);border-color:rgba(255,255,255,.12);color:var(--cream)}
 .dark .nextlink:hover{background:rgba(245,245,247,.17)}
@@ -682,7 +745,7 @@ body::after{
 /* crop ke kepala dan bahu */
 .wa-av img{
   width:100%;height:100%;display:block;object-fit:cover;object-position:center top;
-  transform:scale(1.65);transform-origin:44% 15%;
+  transform:scale(var(--ava-scale));transform-origin:var(--ava-origin);
 }
 .dark .wa-av{border-color:rgba(0,0,0,.6)}
 
@@ -717,3 +780,23 @@ body::after{
   *{animation-duration:.001ms !important;transition-duration:.001ms !important}
   .mesh i{animation:none}
 }
+
+/* ---------- layar lebar ----------
+   Dulu kartu melayang seperti HP di tengah layar, dan pola checker di belakangnya
+   jadi kelihatan jelas. Sekarang permukaannya menutup layar, jadi rasanya sama
+   seperti di HP, sementara isinya tetap dikunci selebar --col. */
+@media(min-width:560px){
+  body{display:block}
+  .app{
+    max-width:none;height:100dvh;
+    border-radius:0;border:none;box-shadow:none;
+  }
+  .topnav,
+  .foot,
+  .foot.plain{
+    padding-left:max(var(--pad), calc((100% - var(--col)) / 2 + var(--pad)));
+    padding-right:max(var(--pad), calc((100% - var(--col)) / 2 + var(--pad)));
+  }
+  .step,
+  .cover{max-width:var(--col);margin-inline:auto}
+  .modal .box{max-width:var(--col);margin-inline:auto}

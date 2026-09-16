@@ -1,14 +1,33 @@
 /* Bio GAINS data: stephen-bni. Disunting lewat editor kartu, jangan diformat ulang. */
 var DATA = {
   "id": "stephen-bni",
-  "lang_default": "id",
+  "lang_default": "en",
   "images": {
-    "cover": "img/stephen.png",
-    "hero": "img/stephen.png",
+    "cover": "img/stephen-hd.jpg",
+    "hero": "img/stephen-hd.jpg",
     "bni": "img/bni.png",
     "logo": "img/increasink.png"
   },
+  "pins": [
+    {
+      "src": "img/pin-titanium.png",
+      "alt": "BNI Titanium Chapter"
+    },
+    {
+      "src": "img/pin-gold.png",
+      "alt": "BNI Gold Club Member"
+    },
+    {
+      "src": "img/pin-green.png",
+      "alt": "BNI Green Member"
+    }
+  ],
   "intro_slides": [
+    {
+      "type": "video",
+      "src": "img/gold.mp4",
+      "poster": "img/gold-poster.jpg"
+    },
     {
       "type": "video",
       "src": "img/intro.mp4",
@@ -29,6 +48,14 @@ var DATA = {
       "poster": "img/slide4-poster.jpg"
     }
   ],
+  "showreel": {
+    "src": "img/gold.mp4",
+    "poster": "img/gold-poster.jpg",
+    "label_id": "Our Showreel",
+    "label_en": "Our Showreel",
+    "note_id": "Gold Club",
+    "note_en": "Gold Club"
+  },
   "contact": {
     "wa": "62817714647",
     "phone_display": "+62 817 714 647",

@@ -22,7 +22,7 @@
   var busy = false;
   var suppressUntil = 0;
 
-  var CHILD = { text: '.chip', ml: 'li', fact: '.fact', fixed: 'button', block: '.blk' };
+  var CHILD = { text: '.chip', ml: 'li', fact: '.fact', fixed: 'button', block: '.blk', pin: '.pin' };
 
   var EYE_ON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1.8 12S5.6 5.5 12 5.5 22.2 12 22.2 12 18.4 18.5 12 18.5 1.8 12 1.8 12z"/><circle cx="12" cy="12" r="3.2"/></svg>';
   var EYE_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4l16 16M9.9 5.9A9.6 9.6 0 0 1 12 5.5c6.4 0 10.2 6.5 10.2 6.5a18 18 0 0 1-3.5 4.2M6.5 7.8A17.6 17.6 0 0 0 1.8 12S5.6 18.5 12 18.5c1.2 0 2.3-.2 3.3-.6"/></svg>';
@@ -354,17 +354,37 @@
         (off ? EYE_OFF : EYE_ON) + '</button></div>';
     }).join('');
 
+    var hasSlides = Array.isArray(BC.data().intro_slides);
+
     sheet(
       '<div class="ed-h">' + T('Atur Urutan', 'Arrange') + '</div>' +
       '<p class="ed-sub">' + T('Tekan agak lama lalu geser untuk memindahkan. Ikon mata menyembunyikan section dari pengunjung.',
         'Press and hold, then drag to move. The eye hides a section from visitors.') + '</p>' +
       '<div class="ed-tiles ed-live" id="edtiles">' + tiles + '</div>' +
+      (hasSlides
+        ? '<div class="ed-col"><button class="ed-btn" data-a="slides">' +
+          T('Slide di Kenalan', 'Slides in Intro') + ' &rsaquo;</button></div>' : '') +
+      '<div class="ed-sep"></div>' +
+      '<div class="ed-col">' +
+      '<button class="ed-btn" data-a="setdef">' + T('Jadikan patokan', 'Save as baseline') + '</button>' +
+      '<button class="ed-btn" data-a="getdef">' + T('Kembalikan ke patokan', 'Restore baseline') + '</button>' +
+      '<button class="ed-btn danger" data-a="revert">' + T('Hapus semua perubahan', 'Discard all changes') + '</button>' +
+      '</div>' +
       '<div class="ed-row"><button class="ed-btn primary" data-a="ok">' + T('Selesai', 'Done') + '</button></div>',
       function (s) {
         var box = s.querySelector('#edtiles');
         s.querySelector('[data-a="ok"]').addEventListener('click', function () {
           closeSheet();
           BC.rebuild();
+        });
+        var sl = s.querySelector('[data-a="slides"]');
+        if (sl) sl.addEventListener('click', function () { closeSheet(); openSlides(); });
+        s.querySelector('[data-a="setdef"]').addEventListener('click', function () { closeSheet(); askSetDefault(); });
+        s.querySelector('[data-a="getdef"]').addEventListener('click', function () { closeSheet(); askGetDefault(); });
+        s.querySelector('[data-a="revert"]').addEventListener('click', function () {
+          if (!dirty) { toast(T('Belum ada perubahan.', 'Nothing has changed yet.')); return; }
+          closeSheet();
+          revert();
         });
         box.addEventListener('click', function (e) {
           var eye = e.target.closest('.ed-eye');
@@ -382,6 +402,155 @@
         });
       }
     );
+  }
+
+  /* ================= lembar slide Kenalan =================
+     Urutan dan hapus saja. Menambah slide hanya untuk gambar, karena /api/upload
+     memang cuma menerima gambar. Video baru tetap lewat repo. */
+  function slideTile(sl, i) {
+    var thumb = sl.type === 'video' ? sl.poster : sl.src;
+    var name = (sl.type === 'video' ? T('Video', 'Video') : T('Gambar', 'Image')) + ' ' + (i + 1);
+    var file = String(sl.src || '').split('/').pop();
+    return '<div class="ed-tile" data-i="' + i + '">' +
+      '<span class="ed-grip"></span>' +
+      '<span class="ed-thumb"' + (thumb ? ' style="background-image:url(' + esc(thumb) + ')"' : '') + '></span>' +
+      '<span class="ed-tile-t">' + esc(name) + '<em>' + esc(file) + '</em></span>' +
+      '<button class="ed-eye ed-del" aria-label="' + T('Hapus slide', 'Remove slide') + '">&times;</button></div>';
+  }
+
+  function openSlides() {
+    var arr = BC.data().intro_slides;
+    if (!Array.isArray(arr)) return;
+    var EMPTY = '<p class="ed-sub" style="margin:0">' + T('Belum ada slide.', 'No slides yet.') + '</p>';
+
+    sheet(
+      '<div class="ed-h">' + T('Slide di Kenalan', 'Slides in Intro') + '</div>' +
+      '<p class="ed-sub">' + T('Tekan agak lama lalu geser untuk memindahkan. Tombol silang menghapus slide.',
+        'Press and hold, then drag to move. The cross removes a slide.') + '</p>' +
+      '<div class="ed-tiles ed-live" id="edslides">' + (arr.length ? arr.map(slideTile).join('') : EMPTY) + '</div>' +
+      '<div class="ed-col"><button class="ed-btn" data-a="addimg">+ ' +
+      T('Tambah gambar', 'Add image') + '</button></div>' +
+      '<div class="ed-row">' +
+      '<button class="ed-btn" data-a="back">' + T('Kembali', 'Back') + '</button>' +
+      '<button class="ed-btn primary" data-a="ok">' + T('Selesai', 'Done') + '</button></div>',
+      function (s) {
+        var box = s.querySelector('#edslides');
+        function reindex() {
+          Array.prototype.forEach.call(box.querySelectorAll('.ed-tile'), function (t, i) { t.dataset.i = i; });
+        }
+        s.querySelector('[data-a="ok"]').addEventListener('click', function () { closeSheet(); BC.rebuild(); });
+        s.querySelector('[data-a="back"]').addEventListener('click', function () { closeSheet(); openOrder(); });
+        s.querySelector('[data-a="addimg"]').addEventListener('click', function () {
+          closeSheet();
+          chooseImage(function (url) {
+            BC.data().intro_slides.push({ type: 'image', src: url });
+          }, function () { openSlides(); });
+        });
+        box.addEventListener('click', function (e) {
+          var x = e.target.closest('.ed-del');
+          if (!x || Date.now() < suppressUntil) return;
+          var tile = x.closest('.ed-tile');
+          arr.splice(+tile.dataset.i, 1);
+          tile.remove();
+          reindex();
+          saveDraft();
+          if (!arr.length) box.innerHTML = EMPTY;
+        });
+        /* Jangan panggil BC.render() di sini: render menulis ulang isi #app dan
+           lembar ini ikut terhapus. Kartu baru disegarkan saat Selesai. */
+        sortable(box, '.ed-tile', function () {
+          var next = Array.prototype.map.call(box.querySelectorAll('.ed-tile'), function (t) {
+            return arr[+t.dataset.i];
+          });
+          arr.length = 0;
+          next.forEach(function (x) { arr.push(x); });
+          reindex();
+          saveDraft();
+        });
+      }
+    );
+  }
+
+  /* ================= patokan =================
+     Disimpan sebagai <card>/default.json lewat /api/publish slot "default".
+     Kartu yang tayang tidak ikut berubah sampai Publish ditekan. */
+  function askSetDefault() {
+    sheet(
+      '<div class="ed-h">' + T('Jadikan patokan', 'Save as baseline') + '</div>' +
+      '<p class="ed-sub">' + T('Isi kartu saat ini disimpan sebagai titik aman. Patokan lama akan ditimpa.',
+        'The card as it is now becomes the safe point. The previous baseline is overwritten.') + '</p>' +
+      '<div class="ed-col">' +
+      '<button class="ed-btn primary" data-a="go">' + T('Simpan patokan', 'Save baseline') + '</button>' +
+      '<button class="ed-btn" data-a="no">' + T('Batal', 'Cancel') + '</button></div>',
+      function (s) {
+        s.querySelector('[data-a="no"]').addEventListener('click', closeSheet);
+        s.querySelector('[data-a="go"]').addEventListener('click', function () { closeSheet(); setDefault(); });
+      }
+    );
+  }
+
+  function setDefault() {
+    if (busy) return;
+    busy = true;
+    var t = toast(T('Menyimpan patokan...', 'Saving baseline...'), 'wait');
+    fetch(API + '/publish', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify({ card: CARD, slot: 'default', data: BC.data() })
+    }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (j) { return { ok: r.ok, status: r.status, j: j }; });
+    }).then(function (x) {
+      busy = false;
+      if (t.parentNode) t.remove();
+      if (!x.ok) {
+        if (x.status === 401) logout();
+        toast(x.j.error || T('Gagal menyimpan patokan.', 'Could not save baseline.'), 'bad');
+        return;
+      }
+      toast(T('Patokan tersimpan.', 'Baseline saved.'), 'good');
+    }).catch(function () {
+      busy = false;
+      if (t.parentNode) t.remove();
+      toast(T('Gagal menghubungi server.', 'Cannot reach the server.'), 'bad');
+    });
+  }
+
+  function askGetDefault() {
+    if (busy) return;
+    busy = true;
+    var t = toast(T('Mengambil patokan...', 'Loading baseline...'), 'wait');
+    fetch('default.json?t=' + Date.now(), { cache: 'no-store' }).then(function (r) {
+      if (!r.ok) throw new Error('404');
+      return r.json();
+    }).then(function (def) {
+      busy = false;
+      if (t.parentNode) t.remove();
+      if (!def || typeof def !== 'object' || Array.isArray(def)) throw new Error('bad');
+      sheet(
+        '<div class="ed-h">' + T('Kembalikan ke patokan', 'Restore baseline') + '</div>' +
+        '<p class="ed-sub">' + T('Seluruh isi kartu diganti dengan patokan yang tersimpan. Kartu yang tayang belum berubah sampai Anda menekan Publish.',
+          'The whole card is replaced by the saved baseline. The live card does not change until you press Publish.') + '</p>' +
+        '<div class="ed-col">' +
+        '<button class="ed-btn danger" data-a="go">' + T('Kembalikan', 'Restore') + '</button>' +
+        '<button class="ed-btn" data-a="no">' + T('Batal', 'Cancel') + '</button></div>',
+        function (s) {
+          s.querySelector('[data-a="no"]').addEventListener('click', closeSheet);
+          s.querySelector('[data-a="go"]').addEventListener('click', function () {
+            closeSheet();
+            replaceData(def);
+            saveDraft();
+            BC.rebuild();
+            toast(T('Sudah kembali ke patokan. Tekan Publish supaya orang lain ikut melihat.',
+              'Back to the baseline. Press Publish so everyone else sees it too.'), 'good');
+          });
+        }
+      );
+    }).catch(function () {
+      busy = false;
+      if (t.parentNode) t.remove();
+      toast(T('Belum ada patokan tersimpan. Simpan dulu lewat Jadikan patokan.',
+        'No baseline saved yet. Use Save as baseline first.'), 'bad');
+    });
   }
 
   /* ================= mesin geser ala home screen =================
@@ -549,6 +718,11 @@
         add.className = 'ed-add';
         add.textContent = '+ ' + T('Tambah', 'Add');
         add.addEventListener('click', function () {
+          // pin selalu berupa gambar, jadi langsung minta berkasnya, bukan item kosong
+          if (kind === 'pin') {
+            chooseImage(function (url) { pget(BC.data(), path).push({ src: url, alt: '' }); });
+            return;
+          }
           pget(BC.data(), path).push(blankItem(kind, arr));
           saveDraft();
           BC.render();

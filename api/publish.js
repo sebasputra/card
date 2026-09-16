@@ -83,6 +83,9 @@ export default async function handler(req, res) {
   }
 
   const { card, data, message } = req.body || {};
+  // slot "default" menulis patokan ke <card>/default.json, bukan menimpa kartu yang tayang
+  const slot = String((req.body || {}).slot || 'data');
+  if (slot !== 'data' && slot !== 'default') return res.status(400).json({ error: 'Slot tidak valid.' });
   if (!SLUG.test(String(card || ''))) return res.status(400).json({ error: 'Nama kartu tidak valid.' });
   if (!data || typeof data !== 'object' || Array.isArray(data)) {
     return res.status(400).json({ error: 'Data kartu tidak valid.' });
@@ -90,14 +93,14 @@ export default async function handler(req, res) {
   const bad = checkMedia(data);
   if (bad) return res.status(400).json({ error: bad });
 
-  const file = toDataJs(card, data);
+  const file = slot === 'default' ? JSON.stringify(data, null, 2) : toDataJs(card, data);
   if (Buffer.byteLength(file, 'utf8') > MAX_BYTES) {
     return res.status(413).json({ error: 'Isi kartu terlalu besar.' });
   }
 
   const repo = process.env.GITHUB_REPO;               // "owner/nama-repo"
   const branch = process.env.GITHUB_BRANCH || 'main';
-  const path = card + '/data.js';
+  const path = card + (slot === 'default' ? '/default.json' : '/data.js');
   const base = '/repos/' + repo + '/contents/' + path;
 
   // sha versi sekarang wajib disertakan, supaya GitHub menolak kalau file sudah
@@ -110,7 +113,8 @@ export default async function handler(req, res) {
   const put = await gh(base, process.env.GITHUB_TOKEN, {
     method: 'PUT',
     body: JSON.stringify({
-      message: String(message || '').slice(0, 120) || 'Perbarui kartu ' + card + ' lewat editor',
+      message: String(message || '').slice(0, 120) ||
+        (slot === 'default' ? 'Simpan patokan kartu ' + card : 'Perbarui kartu ' + card + ' lewat editor'),
       content: Buffer.from(file, 'utf8').toString('base64'),
       branch,
       ...(cur.ok && cur.body.sha ? { sha: cur.body.sha } : {})

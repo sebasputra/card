@@ -106,6 +106,10 @@
 .ed-add:hover{border-color:var(--gold);border-style:solid}
 .app.editing ul.list > .ed-add{display:block;margin:10px 0 0 -18px;list-style:none}
 .app.editing .facts > .ed-add{margin-top:10px;width:100%}
+.app.editing .pins > .ed-add{padding:4px 9px;font-size:10px;align-self:center}
+/* .cover .pins ditarik naik 10px di tampilan biasa. Di mode sunting tarikan itu
+   membuatnya menimpa tombol Ganti gambar milik foto cover, jadi dikembalikan. */
+.app.editing .cover .pins{margin-top:16px}
 
 /* ---------- lembar (login, urutan, konfirmasi) ---------- */
 .ed-sheet{
@@ -139,6 +143,20 @@
 .ed-col{display:flex;flex-direction:column;gap:8px;margin-top:16px}
 .ed-col .ed-btn{border-color:var(--line);color:var(--ink)}
 .ed-col .ed-btn.primary{color:#fff}
+/* .ed-col .ed-btn di atas menang atas .ed-btn.danger, jadi merahnya dikembalikan di sini */
+.ed-col .ed-btn.danger{color:#B3402A;border-color:rgba(179,64,42,.42)}
+.ed-sep{height:1px;background:var(--line);margin:18px 0 2px}
+
+/* ---------- kartu slide Kenalan ---------- */
+.ed-thumb{
+  flex:none;width:34px;height:42px;background:var(--line);
+  background-size:cover;background-position:center;
+}
+.ed-tile-t em{
+  display:block;font-style:normal;font-size:11px;line-height:1.5;
+  color:var(--mu);word-break:break-all;
+}
+.ed-del{font-size:18px;line-height:1;color:var(--mu)}
 
 /* ---------- kartu urutan section ---------- */
 .ed-tiles{display:flex;flex-direction:column;gap:8px;margin-top:4px}
@@ -224,3 +242,9 @@
 .ed-img-btn{display:block;margin:12px auto 0}
 /* pegangan jangan menutupi huruf pertama blok teks */
 .app.editing .blk-text .p{padding-left:22px}
+
+/* lembar editor ikut dikunci selebar isi kartu di layar lebar */
+@media(min-width:560px){
+  .ed-box,
+  .ed-bar{max-width:var(--col);margin-inline:auto;width:100%}
+}
