@@ -10,8 +10,12 @@ var DATA = {
   },
   "pins": [
     {
-      "src": "img/pin-titanium.png",
-      "alt": "BNI Titanium Chapter"
+      "src": "img/pin-leadership.png",
+      "alt": "BNI Leadership Team"
+    },
+    {
+      "src": "img/pin-connector.png",
+      "alt": "BNI Master Connector"
     },
     {
       "src": "img/pin-gold.png",

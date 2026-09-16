@@ -70,7 +70,13 @@ const ringImg = w.document.querySelector('.ring-img');
 check('cover pakai foto hi-res', ringImg.getAttribute('src') === 'img/stephen-hd.jpg',
   ringImg.getAttribute('src'));
 const coverPins = [...w.document.querySelectorAll('.cover .pins .pin img')];
-check('3 pin di cover', coverPins.length === 3, String(coverPins.length));
+check('4 pin di cover', coverPins.length === 4, String(coverPins.length));
+check('urutan pin benar',
+  coverPins.map((i) => i.getAttribute('src').split('/').pop()).join(',') ===
+  'pin-leadership.png,pin-connector.png,pin-gold.png,pin-green.png',
+  coverPins.map((i) => i.getAttribute('src').split('/').pop()).join(','));
+check('pin titanium sudah tidak dipakai',
+  !coverPins.some((i) => i.getAttribute('src').includes('titanium')));
 check('pin tepat di bawah foto',
   w.document.querySelector('.ring').nextElementSibling.className === 'pins',
   w.document.querySelector('.ring').nextElementSibling.className);
@@ -79,7 +85,7 @@ check('pin punya alt', coverPins.every((i) => i.getAttribute('alt')),
 
 // ---- step BNI: deret pin yang sama
 BC.go(steps.indexOf('bni'));
-check('pin ikut tampil di step BNI', w.document.querySelectorAll('.pins .pin').length === 3,
+check('pin ikut tampil di step BNI', w.document.querySelectorAll('.pins .pin').length === 4,
   String(w.document.querySelectorAll('.pins .pin').length));
 
 // ---- step Connect: tombol showreel
@@ -87,8 +93,14 @@ BC.go(steps.indexOf('connect'));
 const reel = w.document.getElementById('reel');
 check('tombol showreel ada', !!reel);
 if (reel) {
-  check('pakai poster yang sama', (reel.getAttribute('style') || '').includes('img/gold-poster.jpg'),
-    reel.getAttribute('style'));
+  const rbg = reel.querySelector('.reel-bg');
+  check('latar tombol video sungguhan, bukan gambar', !!rbg && rbg.tagName === 'VIDEO');
+  check('video tombol pakai berkas slide pertama', rbg.getAttribute('src') === 'img/gold.mp4',
+    rbg.getAttribute('src'));
+  check('video tombol muted dan looping',
+    rbg.hasAttribute('muted') && rbg.hasAttribute('loop') && rbg.hasAttribute('playsinline'));
+  check('video tombol disembunyikan dari pembaca layar',
+    rbg.getAttribute('aria-hidden') === 'true' && rbg.getAttribute('tabindex') === '-1');
   check('label Our Showreel', reel.textContent.includes('Our Showreel'), reel.textContent.trim());
   check('bisa difokus keyboard', reel.getAttribute('role') === 'button' && reel.getAttribute('tabindex') === '0');
   check('ada di akhir, setelah Bagikan',
@@ -98,10 +110,18 @@ if (reel) {
   // buka overlay
   reel.dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
   const m = w.document.getElementById('modal');
-  const v = m.querySelector('.reelv');
   check('overlay terbuka', m.className === 'modal full show', m.className);
-  check('video overlay src sama', v && v.getAttribute('src') === 'img/gold.mp4', v && v.getAttribute('src'));
-  check('ada kontrol video', !!(v && v.hasAttribute('controls')));
+  const ocar = m.querySelector('#car');
+  check('overlay berisi carousel, bukan satu video', !!ocar && ocar.classList.contains('reelcar'));
+  check('carousel overlay lengkap 5 slide', m.querySelectorAll('.car-slide').length === 5,
+    String(m.querySelectorAll('.car-slide').length));
+  check('mulai dari slide Gold',
+    m.querySelector('.car-slide video').getAttribute('src') === 'img/gold.mp4',
+    m.querySelector('.car-slide video').getAttribute('src'));
+  check('titik indikator ikut ada', m.querySelectorAll('.car-dots i').length === 5);
+  check('tombol suara ikut ada', !!m.querySelector('#vsound'));
+  check('tidak ada lagi .reelv tunggal', !m.querySelector('.reelv'));
+  check('video tombol dihentikan selagi overlay terbuka', rbg.paused);
 
   // tutup lewat tombol silang
   m.querySelector('#reelx').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
@@ -109,7 +129,34 @@ if (reel) {
     !w.document.getElementById('modal').innerHTML, w.document.getElementById('modal').className);
 }
 
+// ---- embed Instagram di step Kenalan, di bawah carousel
+BC.go(steps.indexOf('intro'));
+const igf = w.document.querySelector('.igframe');
+check('embed Instagram ada di step Kenalan', !!igf);
+if (igf) {
+  check('menunjuk profil Stephen',
+    igf.getAttribute('src') === 'https://www.instagram.com/stephenseptian/embed/',
+    igf.getAttribute('src'));
+  check('dimuat malas', igf.getAttribute('loading') === 'lazy');
+  check('di bawah carousel, bukan di dalamnya',
+    !igf.closest('.carousel') && !!w.document.querySelector('.step > .igbox'));
+  // tinggi diatur dari pesan MEASURE milik Instagram, bukan angka tebakan
+  w.dispatchEvent(new w.MessageEvent('message', {
+    origin: 'https://www.instagram.com',
+    data: { type: 'MEASURE', details: { height: 437 } }
+  }));
+  check('tinggi iframe ikut pesan MEASURE', igf.style.height === '437px', igf.style.height);
+  w.dispatchEvent(new w.MessageEvent('message', {
+    origin: 'https://jahat.example', data: { type: 'MEASURE', details: { height: 9 } }
+  }));
+  check('pesan dari origin lain diabaikan', igf.style.height === '437px', igf.style.height);
+  check('ada tautan buka profil',
+    w.document.querySelector('.igbox-a').getAttribute('href') === 'https://instagram.com/stephenseptian',
+    w.document.querySelector('.igbox-a').getAttribute('href'));
+}
+
 // ---- logo Increasink di kaki Let's Connect
+BC.go(steps.indexOf('connect'));      // pemeriksaan Instagram di atas pindah ke step Kenalan
 const flogo = w.document.querySelector('.foot-logo');
 check('logo Increasink ada di Let\'s Connect', !!flogo);
 if (flogo) {

@@ -170,15 +170,16 @@
       '</div>';
   };
 
-  view.intro = function () {
-    var hero = D.hero || {}, img = (D.images || {}).hero;
-    /* Carousel ala Instagram: video dan gambar dari data.intro_slides. Video mulai tanpa suara
-       karena browser HP menolak autoplay bersuara, tombol speaker menyalakan suara lewat ketukan.
-       Tombol Ganti gambar tidak dipasang di sini. */
+  /* Carousel ala Instagram: video dan gambar dari data.intro_slides. Video mulai tanpa suara
+     karena browser HP menolak autoplay bersuara, tombol speaker menyalakan suara lewat ketukan.
+     Dipakai dua kali, di step Kenalan dan di dalam overlay Our Showreel, tapi tidak pernah
+     bersamaan karena satu step satu layar, jadi id "car" dan "vsound" tetap tunggal. */
+  function carouselHtml(extra) {
+    var hero = D.hero || {};
     var slides = (Array.isArray(D.intro_slides) ? D.intro_slides : []).filter(function (s) { return s && has(s.src); });
+    if (!slides.length) return '';
     var hasVid = slides.some(function (s) { return s.type === 'video'; });
-    var p = slides.length
-      ? '<div class="portrait carousel" id="car" aria-roledescription="carousel">' +
+    return '<div class="portrait carousel' + (extra ? ' ' + extra : '') + '" id="car" aria-roledescription="carousel">' +
         '<div class="car-track">' + slides.map(function (s, i) {
           return '<div class="car-slide">' + (s.type === 'video'
             ? '<video class="car-media"' + (i === 0 ? ' src="' + esc(s.src) + '"' : '') +
@@ -189,18 +190,39 @@
         }).join('') + '</div>' +
         (slides.length > 1 ? '<div class="car-dots" aria-hidden="true">' +
           slides.map(function () { return '<i></i>'; }).join('') + '</div>' : '') +
-        (hasVid ? '<button class="vsound" id="vsound" aria-pressed="' + introSound + '" aria-label="' +
+          (hasVid ? '<button class="vsound" id="vsound" aria-pressed="' + introSound + '" aria-label="' +
           (introSound ? T('Matikan suara', 'Mute') : T('Nyalakan suara', 'Unmute')) + '">' +
-          svg(introSound ? 'soundOn' : 'soundOff') + '</button>' : '') + '</div>'
-      : has(img)
-      ? '<div class="portrait" data-img="images.hero" style="background-image:url(' + esc(img) + ')"></div>'
-      : '<div class="portrait" data-img="images.hero"><span class="portrait-ini">' + esc(hero.initials || '') + '</span></div>';
+          svg(introSound ? 'soundOn' : 'soundOff') + '</button>' : '') + '</div>';
+  }
+
+  /* Grid Instagram resmi lewat /<user>/embed/. Bukan widget pihak ketiga, tapi juga bukan
+     endpoint yang didokumentasikan Meta, jadi anggap bisa berubah sewaktu-waktu. Dimuat
+     malas supaya tidak ikut mengunduh saat carousel baru dibuka. */
+  function igHtml() {
+    var ig = (D.contact || {}).ig;
+    if (!has(ig) || (D.ig_embed === false)) return '';
+    return '<div class="igbox">' +
+      '<div class="igbox-h">Instagram <b>@' + esc(ig) + '</b></div>' +
+      '<iframe class="igframe" loading="lazy" scrolling="no" frameborder="0"' +
+      ' title="Instagram @' + esc(ig) + '"' +
+      ' src="https://www.instagram.com/' + esc(encodeURIComponent(ig)) + '/embed/"></iframe>' +
+      '<a class="igbox-a" href="https://instagram.com/' + esc(encodeURIComponent(ig)) + '" target="_blank" rel="noopener">' +
+      T('Buka profil', 'Open profile') + ' &rsaquo;</a></div>';
+  }
+
+  view.intro = function () {
+    var hero = D.hero || {}, img = (D.images || {}).hero;
+    var p = carouselHtml() ||
+      (has(img)
+        ? '<div class="portrait" data-img="images.hero" style="background-image:url(' + esc(img) + ')"></div>'
+        : '<div class="portrait" data-img="images.hero"><span class="portrait-ini">' + esc(hero.initials || '') + '</span></div>');
     return '<div class="step">' +
       p +
       '<h2 class="name"' + ed('hero.name') + '>' + esc(hero.name || '') + '</h2>' +
       '<p class="role"' + ed(lp('hero', 'role')) + '>' + esc(L(hero, 'role')) + '</p>' +
       (has(L(hero, 'tagline')) || editing()
         ? '<p class="quote"' + ed(lp('hero', 'tagline'), 1) + '>' + L(hero, 'tagline') + '</p>' : '') +
+      igHtml() +
       '</div>';
   };
 
@@ -344,8 +366,10 @@
   function reelBtn() {
     var r = D.showreel || {};
     if (!has(r.src) && !editing()) return '';
-    return '<div class="reel" id="reel" role="button" tabindex="0"' +
-      (has(r.poster) ? ' style="--reel-img:url(' + esc(r.poster) + ')"' : '') + '>' +
+    return '<div class="reel" id="reel" role="button" tabindex="0">' +
+      '<video class="reel-bg" src="' + esc(r.src) + '"' +
+      (has(r.poster) ? ' poster="' + esc(r.poster) + '"' : '') +
+      ' muted playsinline loop preload="metadata" aria-hidden="true" tabindex="-1"></video>' +
       '<span class="reel-ic">' + svg('play') + '</span>' +
       '<span class="reel-t"><b' + ed(lp('showreel', 'label')) + '>' + esc(L(r, 'label') || 'Our Showreel') + '</b>' +
       (has(L(r, 'note')) || editing()
@@ -355,27 +379,43 @@
 
   function reelOpen() {
     var r = D.showreel || {}, m = el('modal');
-    if (!has(r.src)) return;
+    var car = carouselHtml('reelcar');
+    if (!car) return;
+    /* Selalu mulai dari slide pertama, dan suara dinyalakan karena overlay ini
+       hanya terbuka lewat ketukan, jadi browser mengizinkan. playVid() tetap
+       punya jalan mundur ke tanpa suara kalau ditolak. */
+    carIndex = 0;
+    introSound = true;
+    // video kecil di tombol dihentikan, percuma ikut didekode di balik overlay
+    var bg = document.querySelector('.reel-bg');
+    if (bg) bg.pause();
     m.className = 'modal full show';
     m.innerHTML = '<div class="reelbox" role="dialog" aria-modal="true" aria-label="' +
-      esc(L(r, 'label') || 'Our Showreel') + '">' +
-      '<video class="reelv" src="' + esc(r.src) + '"' +
-      (has(r.poster) ? ' poster="' + esc(r.poster) + '"' : '') +
-      ' playsinline controls preload="auto"></video>' +
+      esc(L(r, 'label') || 'Our Showreel') + '">' + car +
       '<button class="reel-x" id="reelx" aria-label="' + T('Tutup', 'Close') + '">' + svg('close') + '</button></div>';
     m.onclick = function (e) { if (e.target === m || e.target.closest('#reelx')) reelClose(); };
-    var v = m.querySelector('.reelv');
-    v.muted = false;
-    // dibuka lewat ketukan, jadi suara boleh langsung. Kalau tetap ditolak, jalan tanpa suara.
-    v.play().catch(function () { v.muted = true; v.play().catch(function () {}); });
+    var box = m.querySelector('#car');
+    if (box) carousel(box);
   }
 
   function reelClose() {
-    var m = el('modal'), v = m.querySelector('.reelv');
-    if (v) v.pause();
+    var m = el('modal');
+    Array.prototype.forEach.call(m.querySelectorAll('video'), function (v) { v.pause(); });
+    clearTimeout(carTimer);
     m.className = 'modal';
     m.innerHTML = '';
     m.onclick = null;
+    playReelBg();          // video di tombol dihidupkan lagi
+  }
+
+  /* Video kecil yang main di dalam tombol Our Showreel. Berkasnya sama dengan slide
+     pertama carousel, jadi diambil dari cache, bukan unduhan baru. */
+  function playReelBg() {
+    var v = document.querySelector('.reel-bg');
+    if (!v) return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    v.muted = true;
+    v.play().catch(function () { /* poster tetap tampil */ });
   }
 
   /* ---------- shell ---------- */
@@ -446,6 +486,7 @@
     if (el('wa')) el('wa').addEventListener('click', waOpen);
     if (el('share')) el('share').addEventListener('click', share);
     if (el('reel')) {
+      playReelBg();
       el('reel').addEventListener('click', function () { if (!editing()) reelOpen(); });
       el('reel').addEventListener('keydown', function (e) {
         if (editing() || (e.key !== 'Enter' && e.key !== ' ')) return;
@@ -733,7 +774,7 @@
     if (editing()) return;
     if (el('modal') && el('modal').classList.contains('show')) {
       if (e.key === 'Escape') {
-        if (el('modal').querySelector('.reelv')) reelClose();
+        if (el('modal').classList.contains('full')) reelClose();
         else el('modal').classList.remove('show');
       }
       return;
@@ -822,6 +863,19 @@
       render();
     }
   };
+
+  /* Instagram mengirim tinggi kontennya sendiri lewat postMessage {type:"MEASURE"}.
+     Dipakai supaya tinggi iframe pas tanpa menebak, dan ikut menyesuaikan kalau lebar
+     kartu berubah. Tinggi di CSS tetap jadi cadangan kalau pesannya tidak pernah datang.
+     Origin diperiksa, jangan percaya postMessage dari sembarang halaman. */
+  window.addEventListener('message', function (e) {
+    if (String(e.origin || '').indexOf('instagram.com') < 0) return;
+    var d = e.data;
+    if (typeof d === 'string') { try { d = JSON.parse(d); } catch (x) { return; } }
+    if (!d || d.type !== 'MEASURE' || !d.details || !d.details.height) return;
+    var f = document.querySelector('.igframe');
+    if (f) f.style.height = Math.min(Math.max(+d.details.height, 180), 900) + 'px';
+  });
 
   mesh();
   document.addEventListener('pointerdown', ripple, { passive: true });

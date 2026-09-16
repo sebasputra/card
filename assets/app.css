@@ -533,13 +533,22 @@ body::after{
 .reel{
   margin-top:12px;width:100%;min-height:92px;cursor:pointer;position:relative;overflow:hidden;
   border:1px solid rgba(255,255,255,.18);border-radius:var(--r-s);
-  /* Gradien ditipiskan ke kanan supaya frame reelnya benar-benar kelihatan. Posisi
-     46% jatuh di pita gambar 2,2:1 milik video, bukan di bar hitam atas bawahnya. */
-  background-image:linear-gradient(90deg,rgba(0,0,0,.90) 0%,rgba(0,0,0,.70) 48%,rgba(0,0,0,.18) 100%),var(--reel-img,none);
-  background-size:cover,cover;background-position:center,center 46%;
+  background:#111;
   display:flex;align-items:center;gap:14px;padding:0 18px;text-align:left;
   transition:border-color .25s;
 }
+/* Latarnya video yang benar-benar main, berkasnya sama dengan slide pertama carousel
+   jadi diambil dari cache. Posisi 46% jatuh di pita gambar 2,2:1 milik video, bukan di
+   bar hitam atas bawahnya. Gradien ditipiskan ke kanan supaya framenya tetap kebaca. */
+.reel-bg{
+  position:absolute;inset:0;width:100%;height:100%;z-index:0;
+  object-fit:cover;object-position:center 46%;pointer-events:none;
+}
+.reel::after{
+  content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:linear-gradient(90deg,rgba(0,0,0,.90) 0%,rgba(0,0,0,.70) 48%,rgba(0,0,0,.18) 100%);
+}
+.reel-ic,.reel-t{position:relative;z-index:2}
 .reel:hover{border-color:rgba(255,255,255,.42)}
 .reel:focus-visible{outline:2px solid rgba(255,255,255,.7);outline-offset:2px}
 .reel-ic{
@@ -555,7 +564,15 @@ body::after{
    webkitEnterFullscreen pada video dan itu mengambil alih tampilan dengan player bawaan. */
 .modal.full{align-items:center;justify-content:center;background:#000;-webkit-backdrop-filter:none;backdrop-filter:none}
 .reelbox{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#000}
-.reelv{width:100%;height:100%;object-fit:contain;background:#000}
+/* carousel yang sama dipakai ulang di dalam overlay, tapi tanpa bingkai kartu dan
+   tanpa rasio 4:5, supaya videonya utuh selebar layar */
+.reelcar{
+  width:100%;height:100%;aspect-ratio:auto;border-radius:0;border:none;
+  box-shadow:none;background:#000;
+}
+.reelcar .car-media{object-fit:contain}
+.reelcar .car-dots{bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+.reelcar .vsound{right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px))}
 .reel-x{
   position:absolute;z-index:2;top:calc(14px + env(safe-area-inset-top,0px));right:14px;
   width:36px;height:36px;border:none;border-radius:50%;cursor:pointer;padding:0;
@@ -564,6 +581,28 @@ body::after{
   -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
 }
 .reel-x svg{width:20px;height:20px}
+
+/* ---------- embed Instagram ----------
+   Lewat /<user>/embed/ milik Instagram sendiri, bukan widget pihak ketiga.
+   loading="lazy" menahan unduhannya sampai user benar benar turun ke sini. */
+.igbox{
+  margin-top:30px;border-radius:var(--r);overflow:hidden;
+  border:1px solid rgba(255,255,255,.6);background:rgba(255,255,255,.45);
+  -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+}
+.igbox-h{
+  padding:14px 18px;font-size:13px;letter-spacing:.01em;color:var(--mu);
+  border-bottom:1px solid rgba(255,255,255,.55);
+}
+.igbox-h b{color:var(--ink);font-weight:600}
+.igframe{display:block;width:100%;height:352px;border:0;background:#fff}
+.igbox-a{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:13px 18px;font-size:15px;letter-spacing:-.02em;text-decoration:none;color:var(--ink);
+  border-top:1px solid rgba(255,255,255,.55);
+}
+.dark .igbox{border-color:rgba(255,255,255,.12);background:rgba(245,245,247,.07)}
+.dark .igbox-a{color:var(--cream)}
 
 /* ---------- pin BNI ---------- */
 .pins{display:flex;flex-wrap:wrap;align-items:center;gap:13px;margin:0 0 22px}

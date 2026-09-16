@@ -124,14 +124,14 @@ check('patokan kosong ditolak dengan pesan',
 w.BioCard.go(0);
 const pinBoxes = [...doc.querySelectorAll('.pins .pin')];
 check('pin dapat tombol hapus di mode sunting',
-  pinBoxes.length === 3 && pinBoxes.every((n) => n.querySelector('.ed-x')),
+  pinBoxes.length === 4 && pinBoxes.every((n) => n.querySelector('.ed-x')),
   String(pinBoxes.length));
 check('deret pin dapat tombol tambah', !!doc.querySelector('.pins .ed-add'));
 click(pinBoxes[1].querySelector('.ed-x'));
-check('pin terhapus dari data', w.DATA.pins.length === 2 &&
-  !w.DATA.pins.some((x) => x.src.includes('gold')),
+check('pin terhapus dari data', w.DATA.pins.length === 3 &&
+  !w.DATA.pins.some((x) => x.src.includes('connector')),
   w.DATA.pins.map((x) => x.src).join(', '));
-check('pin ikut hilang dari layar', doc.querySelectorAll('.pins .pin').length === 2,
+check('pin ikut hilang dari layar', doc.querySelectorAll('.pins .pin').length === 3,
   String(doc.querySelectorAll('.pins .pin').length));
 
 console.log('LULUS (' + ok.length + ')');
