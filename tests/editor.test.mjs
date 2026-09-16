@@ -70,7 +70,7 @@ click($('.ed-sheet [data-a="slides"]'));
 check('lembar slide terbuka', !!$('#edslides'));
 let tiles = [...doc.querySelectorAll('#edslides .ed-tile')];
 check('5 kartu slide', tiles.length === 5, String(tiles.length));
-check('kartu menyebut nama berkas', tiles[0].textContent.includes('gold.mp4'), tiles[0].textContent.trim());
+check('kartu menyebut nama berkas', tiles[0].textContent.includes('gold-v2.mp4'), tiles[0].textContent.trim());
 check('kartu gambar dilabeli Image', tiles[2].textContent.includes('Image'), tiles[2].textContent.trim());
 
 // hapus slide ke-2 (intro.mp4)

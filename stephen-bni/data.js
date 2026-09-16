@@ -29,8 +29,8 @@ var DATA = {
   "intro_slides": [
     {
       "type": "video",
-      "src": "img/gold.mp4",
-      "poster": "img/gold-poster.webp"
+      "src": "img/gold-v2.mp4",
+      "poster": "img/gold-v2-poster.webp"
     },
     {
       "type": "video",
@@ -53,11 +53,12 @@ var DATA = {
     }
   ],
   "showreel": {
-    "src": "img/gold.mp4",
-    "poster": "img/gold-poster.webp",
+    "src": "img/ourworks.mp4",
+    "poster": "img/ourworks-poster.webp",
+    "loop": "img/ourworks-loop.mp4",
     "label_id": "Our Showreel",
     "label_en": "Our Showreel",
-    "note_id": "Gold Club",
+    "note_id": "Ketuk untuk lihat",
     "note_en": "Click to Explore"
   },
   "contact": {

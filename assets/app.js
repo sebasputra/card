@@ -174,9 +174,10 @@
      karena browser HP menolak autoplay bersuara, tombol speaker menyalakan suara lewat ketukan.
      Dipakai dua kali, di step Kenalan dan di dalam overlay Our Showreel, tapi tidak pernah
      bersamaan karena satu step satu layar, jadi id "car" dan "vsound" tetap tunggal. */
-  function carouselHtml(extra) {
+  function carouselHtml(extra, lead) {
     var hero = D.hero || {};
     var slides = (Array.isArray(D.intro_slides) ? D.intro_slides : []).filter(function (s) { return s && has(s.src); });
+    if (lead && has(lead.src)) slides = [lead].concat(slides);
     if (!slides.length) return '';
     var hasVid = slides.some(function (s) { return s.type === 'video'; });
     return '<div class="portrait carousel' + (extra ? ' ' + extra : '') + '" id="car" aria-roledescription="carousel">' +
@@ -192,7 +193,13 @@
           slides.map(function () { return '<i></i>'; }).join('') + '</div>' : '') +
           (hasVid ? '<button class="vsound" id="vsound" aria-pressed="' + introSound + '" aria-label="' +
           (introSound ? T('Matikan suara', 'Mute') : T('Nyalakan suara', 'Unmute')) + '">' +
-          svg(introSound ? 'soundOn' : 'soundOff') + '</button>' : '') + '</div>';
+          svg(introSound ? 'soundOn' : 'soundOff') + '</button>' : '') +
+        /* Di HP carousel digeser dengan jari. Di browser tidak ada yang bisa digeser,
+           jadi dua tombol ini yang menggantikannya, muncul hanya di perangkat bertetikus. */
+        (slides.length > 1
+          ? '<button class="car-nav prev" aria-label="' + T('Slide sebelumnya', 'Previous slide') + '">&lsaquo;</button>' +
+            '<button class="car-nav next" aria-label="' + T('Slide berikutnya', 'Next slide') + '">&rsaquo;</button>' : '') +
+        '</div>';
   }
 
   /* Grid Instagram resmi lewat /<user>/embed/. Bukan widget pihak ketiga, tapi juga bukan
@@ -366,20 +373,24 @@
   function reelBtn() {
     var r = D.showreel || {};
     if (!has(r.src) && !editing()) return '';
+    /* Latar tombol memakai klip pendek kalau ada, bukan film penuh, supaya pengunjung
+       yang meloncat langsung ke tab Contact tidak menarik berkas besar hanya untuk
+       sebuah strip setinggi 92px. */
     return '<div class="reel" id="reel" role="button" tabindex="0">' +
-      '<video class="reel-bg" src="' + esc(r.src) + '"' +
-      (has(r.poster) ? ' poster="' + esc(r.poster) + '"' : '') +
-      ' muted playsinline loop preload="metadata" aria-hidden="true" tabindex="-1"></video>' +
       '<span class="reel-ic">' + svg('play') + '</span>' +
       '<span class="reel-t"><b' + ed(lp('showreel', 'label')) + '>' + esc(L(r, 'label') || 'Our Showreel') + '</b>' +
       (has(L(r, 'note')) || editing()
         ? '<i' + ed(lp('showreel', 'note')) + '>' + esc(L(r, 'note')) + '</i>' : '') +
-      '</span></div>';
+      '</span>' +
+      '<video class="reel-bg" src="' + esc(r.loop || r.src) + '"' +
+      (has(r.poster) ? ' poster="' + esc(r.poster) + '"' : '') +
+      ' muted playsinline loop preload="metadata" aria-hidden="true" tabindex="-1"></video></div>';
   }
 
   function reelOpen() {
     var r = D.showreel || {}, m = el('modal');
-    var car = carouselHtml('reelcar');
+    // videonya sendiri jadi slide pembuka overlay, baru disusul slide carousel Kenalan
+    var car = carouselHtml('reelcar', has(r.src) ? { type: 'video', src: r.src, poster: r.poster } : null);
     if (!car) return;
     /* Selalu mulai dari slide pertama, dan suara dinyalakan karena overlay ini
        hanya terbuka lewat ketukan, jadi browser mengizinkan. playVid() tetap
@@ -416,6 +427,25 @@
      tanpa mampir ke Kenalan, berkasnya belum di cache, dan tanpa batas ini browser akan
      menarik seluruh 71 detik hanya untuk sebuah strip setinggi 92px. */
   var REEL_BG_S = 15;
+
+  /* Sama alasannya dengan embed Instagram: jangan mengunduh apa pun sebelum
+     tombolnya benar-benar mendekat layar. */
+  var reelSpy = null;
+  function armReelBg() {
+    var v = document.querySelector('.reel-bg');
+    if (!v) return;
+    if (reelSpy) { reelSpy.disconnect(); reelSpy = null; }
+    if (!window.IntersectionObserver) { playReelBg(); return; }
+    reelSpy = new IntersectionObserver(function (list) {
+      list.forEach(function (x) {
+        if (!x.isIntersecting) return;
+        playReelBg();
+        if (reelSpy) { reelSpy.disconnect(); reelSpy = null; }
+      });
+    }, { root: el('stage'), rootMargin: '150px 0px' });
+    reelSpy.observe(v);
+  }
+
   function playReelBg() {
     var v = document.querySelector('.reel-bg');
     if (!v) return;
@@ -479,7 +509,7 @@
     if (s.key !== 'cover' && step < STEPS.length - 1) {
       body = body.replace(/<\/div>\s*$/, '<button class="nextlink" id="next">' +
         T('Lanjut', 'Continue') + '<span>' + esc(T(STEPS[step + 1].tab[0], STEPS[step + 1].tab[1])) +
-        ' &rsaquo;</span></button></div>');
+        '<i class="ar2">&rsaquo;</i></span></button></div>');
     }
 
     app.innerHTML = topnav + '<div class="stage" id="stage">' + body + '</div>' +
@@ -498,7 +528,7 @@
     if (el('wa')) el('wa').addEventListener('click', waOpen);
     if (el('share')) el('share').addEventListener('click', share);
     if (el('reel')) {
-      playReelBg();
+      armReelBg();
       el('reel').addEventListener('click', function () { if (!editing()) reelOpen(); });
       el('reel').addEventListener('keydown', function (e) {
         if (editing() || (e.key !== 'Enter' && e.key !== ' ')) return;
@@ -684,12 +714,14 @@
       else if (n > 1) carTimer = setTimeout(function () { if (alive()) next(); }, IMG_MS);
       if (n > 1) arm((i + 1) % n, 'metadata');   // cuma header, bukan seluruh berkas
     }
-    function next() {
+    // sengaja bukan go(), supaya tidak menutupi go() global yang memindahkan step
+    function slideTo(i) {
       if (n < 2 || !alive()) return;
-      var i = (carIndex + 1) % n;
       track.scrollTo({ left: i * track.clientWidth, behavior: 'smooth' });
       activate(i);
     }
+    function next() { slideTo((carIndex + 1) % n); }
+    function prev() { slideTo((carIndex - 1 + n) % n); }
     slides.forEach(function (s, j) {
       var v = media(j);
       if (v) v.addEventListener('ended', function () { if (j === carIndex && alive()) next(); });
@@ -724,6 +756,9 @@
       });
       paintSound(sb);
     });
+    var bp = box.querySelector('.car-nav.prev'), bn = box.querySelector('.car-nav.next');
+    if (bp) bp.addEventListener('click', function (e) { e.stopPropagation(); prev(); });
+    if (bn) bn.addEventListener('click', function (e) { e.stopPropagation(); next(); });
     track.scrollLeft = carIndex * track.clientWidth;
     activate(carIndex);
   }

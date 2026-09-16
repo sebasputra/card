@@ -42,7 +42,7 @@ const slideEls = [...w.document.querySelectorAll('.car-slide')];
 const vids = slideEls.map((s) => s.querySelector('video'));
 check('5 slide dirender', w.document.querySelectorAll('.car-slide').length === 5,
   String(w.document.querySelectorAll('.car-slide').length));
-check('slide 1 = gold.mp4', vids[0].getAttribute('src') === 'img/gold.mp4', vids[0].getAttribute('src'));
+check('slide 1 = gold-v2.mp4', vids[0].getAttribute('src') === 'img/gold-v2.mp4', vids[0].getAttribute('src'));
 check('slide 1 preload auto', vids[0].getAttribute('preload') === 'auto');
 check('semua video punya data-src cadangan', vids.filter(Boolean).every((v) => v.dataset.src));
 check('slide 3 memang gambar, bukan video', !vids[2] && !!slideEls[2].querySelector('img'));
@@ -71,6 +71,23 @@ check('sampai slide 3, slide 4 baru di-arm', vids[3].getAttribute('src') === 'im
   vids[3].getAttribute('src') || 'kosong');
 check('slide 5 tetap belum di-arm sampai gilirannya', !vids[4].getAttribute('src'),
   vids[4].getAttribute('src') || 'kosong');
+
+// ---- tombol maju mundur, penolong untuk pengguna browser yang tidak bisa menggeser
+const cnav = w.document.querySelectorAll('.carousel .car-nav');
+check('carousel punya tombol maju dan mundur', cnav.length === 2,
+  [...cnav].map((b) => b.className).join(' | '));
+const dotOn = () => [...w.document.querySelectorAll('.car-dots i')].findIndex((d) => d.classList.contains('on'));
+const klik = (sel) => w.document.querySelector(sel).dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
+const mulai = dotOn();
+klik('.car-nav.prev');
+check('tombol mundur memundurkan satu slide', dotOn() === (mulai - 1 + 5) % 5,
+  `dari ${mulai} ke ${dotOn()}`);
+klik('.car-nav.next');
+check('tombol maju mengembalikannya', dotOn() === mulai, `kembali ke ${dotOn()}`);
+// dari slide pertama, mundur harus melingkar ke slide terakhir, bukan mentok
+while (dotOn() !== 0) klik('.car-nav.prev');
+klik('.car-nav.prev');
+check('mundur dari slide pertama melingkar ke slide terakhir', dotOn() === 4, String(dotOn()));
 
 // ---- cover: foto hi-res + deret pin
 BC.go(0);
@@ -102,14 +119,21 @@ const reel = w.document.getElementById('reel');
 check('tombol showreel ada', !!reel);
 if (reel) {
   const rbg = reel.querySelector('.reel-bg');
-  check('latar tombol video sungguhan, bukan gambar', !!rbg && rbg.tagName === 'VIDEO');
-  check('video tombol pakai berkas slide pertama', rbg.getAttribute('src') === 'img/gold.mp4',
-    rbg.getAttribute('src'));
+  check('tombol memuat video sungguhan, bukan gambar', !!rbg && rbg.tagName === 'VIDEO');
+  // videonya keping di kanan, jadi harus jadi anak terakhir, bukan latar di belakang teks
+  check('video duduk sesudah teks, bukan di belakangnya',
+    reel.lastElementChild === rbg, reel.lastElementChild.className);
+  check('video tombol pakai klip pendek, bukan film penuh',
+    rbg.getAttribute('src') === 'img/ourworks-loop.mp4', rbg.getAttribute('src'));
   check('video tombol muted dan looping',
     rbg.hasAttribute('muted') && rbg.hasAttribute('loop') && rbg.hasAttribute('playsinline'));
   check('video tombol disembunyikan dari pembaca layar',
     rbg.getAttribute('aria-hidden') === 'true' && rbg.getAttribute('tabindex') === '-1');
-  // dibatasi 15 detik supaya pengunjung yang loncat langsung ke Contact tidak menarik 71 detik penuh
+  // video tombol baru dimuat saat tombolnya mendekat layar
+  const rbo = observers.find((o) => o.el === rbg);
+  check('video tombol diawasi IntersectionObserver', !!rbo);
+  if (rbo) rbo.trigger();
+  // dibatasi 15 detik supaya pengunjung yang loncat langsung ke Contact tidak menarik film penuh
   rbg.currentTime = 16;
   rbg.dispatchEvent(new w.Event('timeupdate'));
   check('video tombol berputar ulang di detik 15', rbg.currentTime === 0, String(rbg.currentTime));
@@ -128,12 +152,17 @@ if (reel) {
   check('overlay terbuka', m.className === 'modal full show', m.className);
   const ocar = m.querySelector('#car');
   check('overlay berisi carousel, bukan satu video', !!ocar && ocar.classList.contains('reelcar'));
-  check('carousel overlay lengkap 5 slide', m.querySelectorAll('.car-slide').length === 5,
+  check('overlay = Our Works ditambah 5 slide Kenalan', m.querySelectorAll('.car-slide').length === 6,
     String(m.querySelectorAll('.car-slide').length));
-  check('mulai dari slide Gold',
-    m.querySelector('.car-slide video').getAttribute('src') === 'img/gold.mp4',
+  check('mulai dari Our Works',
+    m.querySelector('.car-slide video').getAttribute('src') === 'img/ourworks.mp4',
     m.querySelector('.car-slide video').getAttribute('src'));
-  check('titik indikator ikut ada', m.querySelectorAll('.car-dots i').length === 5);
+  check('slide kedua overlay = Gold',
+    m.querySelectorAll('.car-slide video')[1].getAttribute('src') === 'img/gold-v2.mp4',
+    m.querySelectorAll('.car-slide video')[1].getAttribute('src'));
+  check('titik indikator ikut ada', m.querySelectorAll('.car-dots i').length === 6);
+  check('overlay juga punya tombol maju mundur',
+    m.querySelectorAll('.reelcar .car-nav').length === 2);
   check('tombol suara ikut ada', !!m.querySelector('#vsound'));
   check('tidak ada lagi .reelv tunggal', !m.querySelector('.reelv'));
   check('video tombol dihentikan selagi overlay terbuka', rbg.paused);
@@ -143,6 +172,12 @@ if (reel) {
   check('overlay tertutup bersih', w.document.getElementById('modal').className === 'modal' &&
     !w.document.getElementById('modal').innerHTML, w.document.getElementById('modal').className);
 }
+
+// ---- panah tombol Lanjut dibungkus supaya bisa dianimasikan
+BC.go(steps.indexOf('bni'));
+const nx = w.document.getElementById('next');
+check('tombol Lanjut ada', !!nx);
+if (nx) check('panahnya dibungkus .ar2', !!nx.querySelector('span .ar2'), nx.innerHTML.slice(-60));
 
 // ---- embed Instagram di step Kenalan, di bawah carousel
 BC.go(steps.indexOf('intro'));

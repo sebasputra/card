@@ -78,15 +78,6 @@ body{
 @keyframes m2{from{transform:translate3d(0,0,0) scale(1.1)}to{transform:translate3d(13%,-8%,0) scale(.94)}}
 @keyframes m3{from{transform:translate3d(0,0,0) scale(.96)}to{transform:translate3d(-11%,-9%,0) scale(1.14)}}
 /* anyaman 96px, juga dari Nakama. Bikin bidang kosong tidak terasa mati. */
-.mesh::after{
-  content:"";position:absolute;inset:0;
-  background-image:
-    linear-gradient(45deg,rgba(118,138,190,.03) 25%,transparent 25%),
-    linear-gradient(-45deg,rgba(118,138,190,.03) 25%,transparent 25%),
-    linear-gradient(45deg,transparent 75%,rgba(118,138,190,.03) 75%),
-    linear-gradient(-45deg,transparent 75%,rgba(118,138,190,.03) 75%);
-  background-size:96px 96px;
-}
 /* butiran halus, penawar banding */
 body::after{
   content:"";position:fixed;inset:0;z-index:40;pointer-events:none;opacity:.05;
@@ -275,6 +266,39 @@ body::after{
 .vsound[aria-pressed="true"]{background:rgba(255,255,255,.9);color:var(--ink)}
 .vsound svg{width:20px;height:20px}
 .vsound[hidden]{display:none}
+
+/* ---------- maju mundur carousel ----------
+   Di HP carousel digeser dengan jari dan tombol ini tidak perlu ada. Di browser
+   tidak ada yang bisa digeser, jadi tombolnya muncul khusus perangkat bertetikus.
+   Baru terlihat saat kursor masuk ke carousel, supaya tidak menutupi gambar. */
+.car-nav{
+  position:absolute;top:50%;z-index:3;display:none;
+  width:34px;height:34px;border-radius:50%;border:none;cursor:pointer;padding:0 0 2px;
+  background:rgba(255,255,255,.92);color:#1D1D1F;
+  font-family:var(--b);font-size:21px;line-height:1;
+  align-items:center;justify-content:center;
+  box-shadow:0 2px 9px rgba(0,0,0,.28);
+  opacity:0;transform:translateY(-50%);
+  transition:opacity .2s ease,transform .12s ease,background .2s ease;
+}
+.car-nav.prev{left:10px}
+.car-nav.next{right:10px}
+@media (hover:hover) and (pointer:fine){
+  .carousel .car-nav{display:flex}
+  .carousel:hover .car-nav,
+  .car-nav:focus-visible{opacity:1}
+  .car-nav:hover{background:#fff;transform:translateY(-50%) scale(1.07)}
+  .car-nav:active{transform:translateY(-50%) scale(.93)}
+  /* di overlay layar penuh tombolnya langsung terlihat, tidak perlu ditunggu hover */
+  .reelcar .car-nav{opacity:.78;width:42px;height:42px;font-size:26px}
+  .reelcar.carousel:hover .car-nav{opacity:1}
+  .reelcar .car-nav.prev{left:18px}
+  .reelcar .car-nav.next{right:18px}
+}
+@media (prefers-reduced-motion: reduce){
+  .car-nav{transition:opacity .2s ease}
+  .car-nav:hover,.car-nav:active{transform:translateY(-50%)}
+}
 .name{display:block;font-family:var(--h);font-weight:700;font-size:clamp(34px,8.6vw,42px);letter-spacing:-.04em;margin-top:28px;line-height:.99}
 .role{margin-top:8px;font-size:17px;line-height:1.47059;letter-spacing:-.022em;color:var(--mu)}
 .quote{
@@ -517,15 +541,18 @@ body::after{
 .contact .ar{color:var(--cream-dm);font-size:17px;line-height:1}
 
 /* ---------- lanjut inline ---------- */
+/* Tombol sekunder. Sengaja tanpa isian supaya jelas bukan aksi utama: yang berisi
+   penuh cuma Chat WhatsApp di kaki kartu. Garisnya memakai --ink beropasitas,
+   bukan putih, supaya kontrasnya cukup di latar terang maupun gelap. */
 .nextlink{
-  margin-top:32px;width:100%;cursor:pointer;border:1px solid rgba(255,255,255,.6);border-radius:var(--r-s);
-  background:rgba(255,255,255,.4);
-  -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+  margin-top:32px;width:100%;cursor:pointer;border-radius:var(--r-s);
+  border:1.5px solid rgba(29,29,31,.28);background:transparent;
   font-family:var(--b);font-size:17px;line-height:1.47059;letter-spacing:-.022em;font-weight:500;
   color:var(--ink);padding:15px 18px;display:flex;align-items:center;justify-content:space-between;
-  transition:background .25s;
+  transition:border-color .25s,background .25s;
 }
-.nextlink:hover{background:rgba(255,255,255,.75)}
+.nextlink:hover{border-color:rgba(29,29,31,.55);background:rgba(29,29,31,.04)}
+.nextlink:active{background:rgba(29,29,31,.08)}
 
 /* ---------- showreel ----------
    Latarnya poster slide yang sama, jadi tidak ada berkas tambahan yang diunduh.
@@ -533,22 +560,21 @@ body::after{
 .reel{
   margin-top:12px;width:100%;min-height:92px;cursor:pointer;position:relative;overflow:hidden;
   border:1px solid rgba(255,255,255,.18);border-radius:var(--r-s);
-  background:#111;
-  display:flex;align-items:center;gap:14px;padding:0 18px;text-align:left;
+  background:#121213;
+  display:flex;align-items:center;gap:13px;padding:0 12px 0 18px;text-align:left;
   transition:border-color .25s;
 }
-/* Latarnya video yang benar-benar main, berkasnya sama dengan slide pertama carousel
-   jadi diambil dari cache. Posisi 46% jatuh di pita gambar 2,2:1 milik video, bukan di
-   bar hitam atas bawahnya. Gradien ditipiskan ke kanan supaya framenya tetap kebaca. */
+/* Videonya keping 16:9 di kanan, bukan latar penuh di balik gradien.
+   Alasannya kontras: isi video berpindah antara nyaris putih dan nyaris hitam, jadi
+   latar penuh membuat keterbacaan teks ikut berubah ubah dan tombolnya terlihat kotor.
+   Dengan tombol gelap pekat dan videonya dipisah, teks selalu aman apa pun isinya. */
 .reel-bg{
-  position:absolute;inset:0;width:100%;height:100%;z-index:0;
-  object-fit:cover;object-position:center 46%;pointer-events:none;
+  margin-left:auto;flex:none;width:124px;height:70px;border-radius:9px;
+  object-fit:cover;background:#000;pointer-events:none;
 }
-.reel::after{
-  content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
-  background:linear-gradient(90deg,rgba(0,0,0,.90) 0%,rgba(0,0,0,.70) 48%,rgba(0,0,0,.18) 100%);
-}
-.reel-ic,.reel-t{position:relative;z-index:2}
+@media(max-width:379px){ .reel-bg{width:98px;height:55px} }
+.reel-t{overflow:hidden}
+.reel-t b,.reel-t i{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .reel:hover{border-color:rgba(255,255,255,.42)}
 .reel:focus-visible{outline:2px solid rgba(255,255,255,.7);outline-offset:2px}
 .reel-ic{
@@ -619,10 +645,23 @@ body::after{
 .dark .foot-logo{filter:invert(1)}
 
 }
-.nextlink span{color:var(--dm);font-weight:400}
-.dark .nextlink{background:rgba(245,245,247,.10);border-color:rgba(255,255,255,.12);color:var(--cream)}
-.dark .nextlink:hover{background:rgba(245,245,247,.17)}
+.nextlink span{color:var(--dm);font-weight:400;display:inline-flex;align-items:center;gap:6px}
+.dark .nextlink{background:transparent;border-color:rgba(245,245,247,.38);color:var(--cream)}
+.dark .nextlink:hover{border-color:rgba(245,245,247,.72);background:rgba(245,245,247,.07)}
+.dark .nextlink:active{background:rgba(245,245,247,.12)}
 .dark .nextlink span{color:var(--cream-dm)}
+
+/* Panahnya maju mundur pelan, dan melompat sedikit lebih jauh saat disentuh.
+   Amplitudonya kecil, tujuannya menunjukkan arah, bukan menarik perhatian. */
+.nextlink .ar2{display:inline-block;animation:arrownudge 1.9s ease-in-out infinite;will-change:transform}
+.nextlink:hover .ar2{animation:none;transform:translateX(4px);transition:transform .2s ease}
+@keyframes arrownudge{
+  0%,58%,100%{transform:translateX(0)}
+  74%{transform:translateX(3px)}
+}
+@media (prefers-reduced-motion: reduce){
+  .nextlink .ar2{animation:none}
+}
 
 /* ---------- footer: WA + navbar ---------- */
 .foot{
