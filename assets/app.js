@@ -386,8 +386,6 @@
     if (editing()) rows += link('#', 'wa', c.wa || '', 'contact.wa');
     return '<div class="step">' +
       h2("Let's Connect") +
-      '<p class="p">' + T('Senang berkenalan dengan Anda. Simpan kontak saya, atau sapa langsung lewat WhatsApp.',
-        'Good to meet you. Save my details, or say hello on WhatsApp.') + '</p>' +
       '<div class="contact">' + rows + '</div>' +
       '<button class="nextlink" id="share">' + T('Bagikan kartu ini', 'Share this card') +
       '<span>' + svg('share') + '</span></button>' +
