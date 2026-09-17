@@ -81,7 +81,7 @@ var DATA = {
   "bni": {
     "chapter": "BNI Magnify, Titanium Chapter, North Region",
     "klasifikasi_id": "Social Media Branding",
-    "klasifikasi_en": "Social Media & Design",
+    "klasifikasi_en": "Social Media Branding",
     "peran_id": "Leadership Team, BNI Magnify, Education Coord",
     "peran_en": "Leadership Team, BNI Magnify",
     "since_id": "2022",
@@ -118,7 +118,7 @@ var DATA = {
       "items": [
         {
           "id": "\u003cb>BNI Indonesia National Conference\u003c/b>, Committee Design",
-          "en": "\u003cb>BNI Indonesia National Conference\u003c/b>, Committee Design"
+          "en": "\u003cb>BNI Indonesia National Conference 2025 &amp; 2026\u003c/b>, Creative Committee"
         },
         {
           "id": "\u003cb>BNI Magnify, Titanium Chapter\u003c/b>, Leadership Team",
