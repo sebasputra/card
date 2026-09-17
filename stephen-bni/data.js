@@ -119,7 +119,7 @@ var DATA = {
       "items": [
         {
           "id": "\u003cb>BNI Indonesia National Conference\u003c/b>, Committee Design",
-          "en": "\u003cb>BNI Indonesia National Conference 2025 &amp; 2026\u003c/b>, Creative Committee"
+          "en": "\u003cb>BNI Indonesia National Conference 2025 &amp; 2026\u003c/b>, Creative Coordinator Committee"
         },
         {
           "id": "\u003cb>BNI Magnify, Titanium Chapter\u003c/b>, Leadership Team",
