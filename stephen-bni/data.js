@@ -138,10 +138,6 @@ var DATA = {
           "en": "\u003cb>Media Ministry\u003c/b> BPK PKK KAJ"
         },
         {
-          "id": "\u003cb>VLN\u003c/b> Design Committee",
-          "en": "\u003cb>VLN\u003c/b> Design Committee"
-        },
-        {
           "id": "\u003cb>PAKKJ\u003c/b> Digital Team",
           "en": "\u003cb>PAKKJ\u003c/b> Digital Team"
         },
