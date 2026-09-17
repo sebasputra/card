@@ -683,7 +683,9 @@
         var txt = (e.clipboardData || window.clipboardData).getData('text');
         document.execCommand('insertText', false, String(txt).replace(/\s+/g, ' '));
       });
+      nd.addEventListener('focus', function () { fmtShow(nd); });
       nd.addEventListener('blur', function () {
+        fmtHide();
         var path = nd.dataset.e;
         var next = readVal(nd);
         var now = pget(BC.data(), path);
@@ -692,6 +694,46 @@
         saveDraft();
       });
     });
+  }
+
+  /* Toolbar kecil di atas teks yang sedang disunting. Di HP tidak ada Ctrl+B, dan tombol ×
+     di pojok item terlalu kecil dan sering ketelan tap di dalam contenteditable.
+     Tombolnya dipicu pointerdown + preventDefault supaya fokus tidak lepas dari teks. */
+  var fmt = null;
+  function fmtHide() { if (fmt && fmt.parentNode) fmt.remove(); fmt = null; }
+  function fmtShow(nd) {
+    fmtHide();
+    var box = nd.parentNode;
+    var kind = box && box.dataset ? box.dataset.kind : '';
+    var removable = !!(box && box.dataset && box.dataset.arr && kind !== 'fixed' && kind !== 'block' && kind !== 'pin');
+    if (!nd.dataset.rich && !removable) return;
+    fmt = document.createElement('div');
+    fmt.className = 'ed-fmt';
+    fmt.innerHTML = (nd.dataset.rich ? '<button data-f="bold" aria-label="Bold"><b>B</b></button>' : '') +
+      (removable ? '<button data-f="del">' + T('Hapus item', 'Remove item') + '</button>' : '');
+    fmt.addEventListener('pointerdown', function (e) {
+      var b = e.target.closest('button');
+      if (!b) return;
+      e.preventDefault();
+      if (b.dataset.f === 'bold') {
+        document.execCommand('styleWithCSS', false, false);
+        document.execCommand('bold');
+        return;
+      }
+      // blur dulu supaya suntingan tersimpan ke index yang masih benar, baru dihapus
+      var path = box.dataset.arr;
+      var i = Array.prototype.filter.call(box.children, function (c) { return c.matches(CHILD[kind] || '*'); }).indexOf(nd);
+      nd.blur();
+      fmtHide();
+      if (i < 0) return;
+      pget(BC.data(), path).splice(i, 1);
+      saveDraft();
+      BC.render();
+    });
+    document.body.appendChild(fmt);
+    var r = nd.getBoundingClientRect();
+    fmt.style.left = Math.max(8, r.left) + 'px';
+    fmt.style.top = Math.max(8, r.top - 44) + 'px';
   }
 
   function blankItem(kind, arr) {
@@ -1051,6 +1093,7 @@
 
   /* ================= gambar ulang lapisan editor ================= */
   function paint() {
+    fmtHide();   // teksnya baru ditulis ulang, toolbar lama tidak menunjuk ke apa-apa lagi
     var a = app();
     if (!a) return;
     a.classList.toggle('editing', editing && unlocked);

@@ -34,6 +34,7 @@
     mail: '<path d="M2 5h20v14H2z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="m2 6 10 7 10-7" fill="none" stroke="currentColor" stroke-width="1.6"/>',
     phone: '<path d="M6 3h4l2 5-2.5 1.5a12 12 0 0 0 5 5L16 12l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 4 5a2 2 0 0 1 2-2z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>',
     ig: '<rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor"/>',
+    linkedin: '<rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 10.5V16M8 7.9v.1M11.5 16v-5.5M11.5 13.2c0-1.7 1-2.7 2.3-2.7s2.2.9 2.2 2.7V16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
     web: '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9S14.5 18.3 12 21c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z" fill="none" stroke="currentColor" stroke-width="1.6"/>',
     wa: '<path d="M12 2a10 10 0 0 0-8.5 15.2L2 22l4.9-1.5A10 10 0 1 0 12 2z" fill="currentColor"/>',
     share: '<circle cx="6" cy="12" r="2.4" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="17" cy="6" r="2.4" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="17" cy="18" r="2.4" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="m8.2 10.9 6.6-3.6M8.2 13.1l6.6 3.6" fill="none" stroke="currentColor" stroke-width="1.6"/>',
@@ -379,6 +380,7 @@
     if (has(c.email) || editing()) rows += link('mailto:' + c.email, 'mail', c.email, 'contact.email');
     if (has(c.phone_display) || editing()) rows += link('tel:' + String(c.phone_display || '').replace(/\s/g, ''), 'phone', c.phone_display, 'contact.phone_display');
     if (has(c.ig) || editing()) rows += link('https://instagram.com/' + c.ig, 'ig', '@' + c.ig, 'contact.ig', '@');
+    if (has(c.linkedin) || editing()) rows += link('https://www.linkedin.com/in/' + c.linkedin + '/', 'linkedin', 'linkedin.com/in/' + c.linkedin, 'contact.linkedin', 'linkedin.com/in/');
     if (has(c.web) || editing()) rows += link('https://' + String(c.web || '').replace(/^https?:\/\//, ''), 'web', c.web, 'contact.web');
     /* Nomor WhatsApp tidak tampil di kartu, tapi harus bisa diperbaiki dari editor. */
     if (editing()) rows += link('#', 'wa', c.wa || '', 'contact.wa');

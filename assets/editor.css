@@ -248,3 +248,15 @@
   .ed-box,
   .ed-bar{max-width:var(--col);margin-inline:auto;width:100%}
 }
+
+/* toolbar Bold dan Hapus item di atas teks yang sedang disunting */
+.ed-fmt{
+  position:fixed;z-index:60;display:flex;gap:6px;padding:5px;
+  background:var(--ink);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.22);
+}
+.ed-fmt button{
+  font-family:var(--b);font-size:14px;min-width:36px;height:32px;padding:0 12px;
+  border:none;border-radius:8px;background:rgba(255,255,255,.12);color:#fff;cursor:pointer;
+  touch-action:manipulation;
+}
+.ed-fmt button[data-f="del"]{background:#FF3B30}

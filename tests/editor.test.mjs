@@ -154,6 +154,21 @@ check('pin terhapus dari data', w.DATA.pins.length === 3 &&
 check('pin ikut hilang dari layar', doc.querySelectorAll('.pins .pin').length === 3,
   String(doc.querySelectorAll('.pins .pin').length));
 
+// ---- toolbar Bold dan Hapus item pada daftar Accomplishment
+w.BioCard.go(w.BioCard.steps().map((s) => s.key).indexOf('gains'));
+let accLis = [...doc.querySelectorAll('[data-arr="gains.accomplishment.items"] > li')];
+check('accomplishment berisi 8 item', accLis.length === 8, String(accLis.length));
+accLis[1].dispatchEvent(new w.FocusEvent('focus'));
+check('toolbar muncul dengan Bold dan Hapus item',
+  !!$('.ed-fmt [data-f="bold"]') && !!$('.ed-fmt [data-f="del"]'));
+const n0 = w.DATA.gains.accomplishment.items.length;
+$('.ed-fmt [data-f="del"]').dispatchEvent(new w.MouseEvent('pointerdown', { bubbles: true, cancelable: true }));
+check('item kedua terhapus dari data', w.DATA.gains.accomplishment.items.length === n0 - 1 &&
+  !w.DATA.gains.accomplishment.items.some((x) => x.en.includes('Titanium Chapter')));
+check('toolbar hilang setelah hapus', !$('.ed-fmt'));
+w.BioCard.go(w.BioCard.steps().map((s) => s.key).indexOf('connect'));
+check('kontak LinkedIn tampil', !!doc.querySelector('.contact a[href="https://www.linkedin.com/in/stephen-septian/"]'));
+
 console.log('LULUS (' + ok.length + ')');
 ok.forEach((x) => console.log('  + ' + x));
 if (fail.length) {

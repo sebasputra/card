@@ -35,10 +35,10 @@
   /* lebar isi kartu. Di layar lebar permukaannya penuh layar, isinya tetap selebar ini. */
   --col:440px;
   /* crop kepala dan bahu, dipakai bareng .ring-img dan .wa-av img.
-     Disetel ulang 16 Sep 2026 untuk foto stephen-hd.jpg yang framing-nya lebih rapat
-     dari stephen.png lama. Kalau fotonya diganti lagi, dua angka ini yang disetel. */
-  --ava-scale:1.25;
-  --ava-origin:50% 10%;
+     Disetel ulang 17 Sep 2026: wajah di tengah lingkaran, kepala sampai kerah kemeja.
+     Kalau fotonya diganti lagi, dua angka ini yang disetel. */
+  --ava-scale:1.5;
+  --ava-origin:53% 26%;
   --r:22px;
   --r-s:14px;
 }
