@@ -380,7 +380,7 @@
     if (has(c.email) || editing()) rows += link('mailto:' + c.email, 'mail', c.email, 'contact.email');
     if (has(c.phone_display) || editing()) rows += link('tel:' + String(c.phone_display || '').replace(/\s/g, ''), 'phone', c.phone_display, 'contact.phone_display');
     if (has(c.ig) || editing()) rows += link('https://instagram.com/' + c.ig, 'ig', '@' + c.ig, 'contact.ig', '@');
-    if (has(c.linkedin) || editing()) rows += link('https://www.linkedin.com/in/' + c.linkedin + '/', 'linkedin', 'linkedin.com/in/' + c.linkedin, 'contact.linkedin', 'linkedin.com/in/');
+    if (has(c.linkedin) || editing()) rows += link('https://www.linkedin.com/in/' + c.linkedin + '/', 'linkedin', editing() ? 'linkedin.com/in/' + c.linkedin : hero.name, 'contact.linkedin', 'linkedin.com/in/');
     if (has(c.web) || editing()) rows += link('https://' + String(c.web || '').replace(/^https?:\/\//, ''), 'web', c.web, 'contact.web');
     /* Nomor WhatsApp tidak tampil di kartu, tapi harus bisa diperbaiki dari editor. */
     if (editing()) rows += link('#', 'wa', c.wa || '', 'contact.wa');
