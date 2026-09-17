@@ -37,8 +37,8 @@
   /* crop kepala dan bahu, dipakai bareng .ring-img dan .wa-av img.
      Disetel ulang 17 Sep 2026: wajah di tengah lingkaran, kepala sampai kerah kemeja.
      Kalau fotonya diganti lagi, dua angka ini yang disetel. */
-  --ava-scale:1.5;
-  --ava-origin:53% 26%;
+  --ava-scale:1.45;
+  --ava-origin:53% 42%;
   --r:22px;
   --r-s:14px;
 }

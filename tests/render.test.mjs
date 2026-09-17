@@ -288,7 +288,7 @@ if (flogo) {
 const css2 = read('assets/app.css');
 check('ada blok layar lebar yang melepas max-width',
   /@media\(min-width:560px\)\{\s*body\{display:block\}/.test(css2.replace(/\n\s*/g, '')));
-check('crop avatar lewat variabel', css2.includes('--ava-scale:1.5') &&
+check('crop avatar lewat variabel', css2.includes('--ava-scale:1.45') &&
   css2.includes('transform:scale(var(--ava-scale))'));
 check('ring dan avatar WA pakai variabel yang sama',
   (css2.match(/transform:scale\(var\(--ava-scale\)\)/g) || []).length === 2);
