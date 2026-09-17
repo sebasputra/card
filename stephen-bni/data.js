@@ -123,7 +123,7 @@ var DATA = {
         },
         {
           "id": "\u003cb>BNI Magnify, Titanium Chapter\u003c/b>, Leadership Team",
-          "en": "\u003cb>BNI Magnify, Titanium Chapter\u003c/b>, Leadership Team"
+          "en": "\u003cb>BNI Magnify, Titanium Chapter\u003c/b>, Leadership Team, TERM 1 - 7 | Lead Tech Team, Edu Coordinator, Social Media &amp; Design"
         },
         {
           "id": "\u003cb>Dewan Pengurus\u003c/b> Perkumpulan Alumni Kanisius Jakarta",
