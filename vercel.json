@@ -1,5 +1,14 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "redirects": [
+    { "source": "/bni", "destination": "/bni/", "permanent": false },
+    { "source": "/stephen-bni", "destination": "/bni/", "permanent": false },
+    { "source": "/stephen-bni/", "destination": "/bni/", "permanent": false }
+  ],
+  "rewrites": [
+    { "source": "/bni/", "destination": "/stephen-bni/index.html" },
+    { "source": "/bni/:path*", "destination": "/stephen-bni/:path*" }
+  ],
   "headers": [
     {
       "source": "/:card/data.js",
