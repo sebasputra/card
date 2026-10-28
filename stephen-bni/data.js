@@ -374,6 +374,11 @@ var DATA = {
             "alt_en": "Stephen with his wife and three kids"
           },
           {
+            "src": "img/personal-prodiakon.webp",
+            "alt_id": "Pelayanan prodiakon",
+            "alt_en": "Serving as an extraordinary minister of Holy Communion"
+          },
+          {
             "src": "img/personal-kanisius.webp",
             "alt_id": "Stephen di CC Alumni Day, reuni alumni Kanisius",
             "alt_en": "Stephen at CC Alumni Day, the Kanisius alumni reunion"

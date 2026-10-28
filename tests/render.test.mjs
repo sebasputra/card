@@ -132,7 +132,7 @@ check('Bio Sheet tampil di Personal', bsTxt.includes('Bio Sheet') && bsTxt.inclu
 check('kolom Bio Sheet kosong disembunyikan', !bsTxt.includes('How Long') && !bsTxt.includes('Animals') && bsTxt.includes('Jakarta'));
 check('grup Miscellaneous ditumpuk', !!w.document.querySelector('.meta.bs-stack'));
 const bsPh = [...w.document.querySelectorAll('.bs-photos img')].map((i) => i.getAttribute('src'));
-check('strip foto Informasi Pribadi: speaker, keluarga, kanisius', bsPh.join() === 'img/personal-speaker.webp,img/personal-family.webp,img/personal-kanisius.webp', bsPh.join());
+check('strip foto Informasi Pribadi: speaker, keluarga, prodiakon, kanisius', bsPh.join() === 'img/personal-speaker.webp,img/personal-family.webp,img/personal-prodiakon.webp,img/personal-kanisius.webp', bsPh.join());
 check('strip foto ada di dalam kartu Informasi Pribadi', !!w.document.querySelector('.meta .bs-photos'));
 
 // ---- nama anak jadi tombol post Instagram, dibuka di lembar dalam kartu
