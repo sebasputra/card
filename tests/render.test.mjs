@@ -135,6 +135,19 @@ const bsPh = [...w.document.querySelectorAll('.bs-photos img')].map((i) => i.get
 check('strip foto Informasi Pribadi: speaker, keluarga, kanisius', bsPh.join() === 'img/personal-speaker.webp,img/personal-family.webp,img/personal-kanisius.webp', bsPh.join());
 check('strip foto ada di dalam kartu Informasi Pribadi', !!w.document.querySelector('.meta .bs-photos'));
 
+// ---- nama anak jadi tombol post Instagram, dibuka di lembar dalam kartu
+const igb = [...w.document.querySelectorAll('.iglink')];
+check('tiga nama anak jadi tombol', igb.map((b) => b.textContent).join() === 'Wayne,Sharren,Brandt', igb.map((b) => b.textContent).join());
+check('kalimat aslinya tetap utuh', igb[0] && igb[0].closest('.meta-v').textContent.includes('Sharren from the word share'));
+klik('.iglink[data-name="Sharren"]');
+const igm = w.document.getElementById('modal');
+const igpf = igm.querySelector('.igpost');
+check('lembar Instagram terbuka', igm.classList.contains('show') && igm.classList.contains('igm'));
+check('embed post Sharren', !!igpf && igpf.getAttribute('src') === 'https://www.instagram.com/p/DOKgPJGAXxC/embed/captioned/', igpf && igpf.getAttribute('src'));
+check('tombol lihat di Instagram', (igm.querySelector('.igsheet-a') || {}).href === 'https://www.instagram.com/p/DOKgPJGAXxC/');
+klik('#igx');
+check('Kembali menutup lembar', !igm.classList.contains('show') && !igm.querySelector('.igpost'));
+
 // ---- Top Ten Customers di step Referral, sebelum dan sesudah memilih tier
 BC.go(steps.indexOf('refer'));
 const t10 = () => [...w.document.querySelectorAll('[data-arr="top10.items"] .fact-n')].map((n) => n.textContent).join('');

@@ -395,7 +395,12 @@ var DATA = {
             "label_id": "Hal yang belum banyak orang tahu tentang saya",
             "label_en": "Something no one knows about me",
             "value_id": "Nama ketiga anak saya punya cerita: Wayne dari Batman, Sharren dari kata share, Brandt dari kata brand.",
-            "value_en": "My three kids' names each have a story: Wayne after Batman, Sharren from the word share, Brandt from the word brand."
+            "value_en": "My three kids' names each have a story: Wayne after Batman, Sharren from the word share, Brandt from the word brand.",
+            "links": [
+              { "label": "Wayne", "url": "https://www.instagram.com/p/DLSAsWFhGVf/" },
+              { "label": "Sharren", "url": "https://www.instagram.com/p/DOKgPJGAXxC/" },
+              { "label": "Brandt", "url": "https://www.instagram.com/p/DYG40gwGGFi/" }
+            ]
           },
           {
             "label_id": "Kunci sukses saya adalah...",

@@ -341,7 +341,7 @@
         // saat menyunting, baris yang di-hide tetap tampil redup dan diberi tombol mata oleh editor
         var hd = editing() ? ' data-hide="' + esc(rp) + '"' : '';
         return '<div class="meta-row' + (r.hidden ? ' ed-off' : '') + '"' + hd + '><div class="meta-k"' + ed(lp(rp, 'label')) + '>' + esc(L(r, 'label')) + '</div>' +
-          '<div class="meta-v"' + ed(lp(rp, 'value')) + '>' + esc(v) + '</div></div>';
+          '<div class="meta-v"' + ed(lp(rp, 'value')) + '>' + (editing() ? esc(v) : igLinks(v, r.links)) + '</div></div>';
       }).join('');
       // strip foto kecil di bawah baris, tiga terlihat, sisanya digeser
       var photos = (g.photos || []).map(function (p, pi) {
@@ -355,6 +355,45 @@
     }).join('');
     if (!groups) return '';
     return '<div style="height:26px"></div>' + h2(L(b, 'title'), lp('biosheet', 'title')) + groups;
+  }
+
+  /* Nama di teks Bio Sheet yang punya post Instagram jadi tombol play. Teksnya tetap teks
+     biasa di data (bisa disunting), tautannya disimpan terpisah di row.links. Dipasang lewat
+     penanda dulu supaya label berikutnya tidak ikut cocok di dalam HTML tombol sebelumnya. */
+  function igLinks(v, links) {
+    var h = esc(v), btns = [];
+    (links || []).forEach(function (k) {
+      if (!k || !has(k.label) || !has(k.url)) return;
+      var t = esc(k.label), i = h.indexOf(t);
+      if (i < 0) return;
+      h = h.slice(0, i) + '\u0000' + btns.length + '\u0000' + h.slice(i + t.length);
+      btns.push('<button type="button" class="iglink" data-ig="' + esc(k.url) + '" data-name="' + t + '">' +
+        svg('play') + t + '</button>');
+    });
+    return h.replace(/\u0000(\d+)\u0000/g, function (_, n) { return btns[+n]; });
+  }
+
+  /* Post Instagram dibuka di lembar dari bawah lewat /embed/ resmi, jadi pengunjung tetap
+     di kartu. Tinggi iframe diatur pesan MEASURE di bawah, lembarnya yang di-scroll. */
+  function igOpen(url, name) {
+    var m = el('modal'), code = (String(url).match(/instagram\.com\/(?:p|reel)\/([\w-]+)/) || [])[1];
+    if (!code) { window.open(url, '_blank', 'noopener'); return; }
+    var post = 'https://www.instagram.com/p/' + code + '/';
+    m.className = 'modal igm show';
+    m.innerHTML = '<div class="box igsheet" role="dialog" aria-modal="true" aria-label="' + esc(name) + '">' +
+      '<div class="igsheet-h"><button class="igsheet-back" id="igx" type="button">&lsaquo; ' + T('Kembali', 'Back') + '</button>' +
+      '<b>' + esc(name) + '</b></div>' +
+      '<div class="igsheet-b"><iframe class="igpost" scrolling="no" frameborder="0" title="Instagram ' + esc(name) + '"' +
+      ' src="' + post + 'embed/captioned/"></iframe></div>' +
+      '<a class="btn igsheet-a" href="' + post + '" target="_blank" rel="noopener">' + svg('ig') +
+      T('Lihat di Instagram', 'View on Instagram') + '</a></div>';
+    m.onclick = function (e) { if (e.target === m || e.target.closest('#igx')) igClose(); };
+  }
+  function igClose() {
+    var m = el('modal');
+    m.className = 'modal';
+    m.innerHTML = '';      // iframe dibuang, video di post ikut berhenti
+    m.onclick = null;
   }
 
   /* Top Ten Customers versi BNI: A Demographics, B Association, C How you found them, D Hot buttons. */
@@ -615,6 +654,9 @@
         reelOpen();
       });
     }
+    Array.prototype.forEach.call(document.querySelectorAll('.iglink'), function (b) {
+      b.addEventListener('click', function () { igOpen(b.dataset.ig, b.dataset.name); });
+    });
     var nv = el('nav');
     if (nv) nv.addEventListener('click', function (e) {
       var b = e.target.closest('button'); if (!b) return;
@@ -929,6 +971,7 @@
     if (el('modal') && el('modal').classList.contains('show')) {
       if (e.key === 'Escape') {
         if (el('modal').classList.contains('full')) reelClose();
+        else if (el('modal').classList.contains('igm')) igClose();
         else el('modal').classList.remove('show');
       }
       return;
@@ -1034,8 +1077,11 @@
     var d = e.data;
     if (typeof d === 'string') { try { d = JSON.parse(d); } catch (x) { return; } }
     if (!d || d.type !== 'MEASURE' || !d.details || !d.details.height) return;
-    var f = document.querySelector('.igframe');
-    if (f) f.style.height = Math.min(Math.max(+d.details.height, 180), 900) + 'px';
+    // cocokkan dengan iframe pengirimnya: embed profil atau post di lembar Instagram
+    var fs = document.querySelectorAll('.igframe, .igpost'), f = null;
+    for (var i = 0; i < fs.length; i++) if (fs[i].contentWindow === e.source) f = fs[i];
+    f = f || document.querySelector('.igframe');
+    if (f) f.style.height = Math.min(Math.max(+d.details.height, 180), f.classList.contains('igpost') ? 2400 : 900) + 'px';
   });
 
   mesh();
