@@ -93,8 +93,8 @@ var DATA = {
       "url": "http://bnijakartautara.com/in/memberdetails?encryptedMemberId=DbGmeY22hqBewzRfphgTWQ%3D%3D&name=Stephen+Septian",
       "label_id": "BNI Connect",
       "label_en": "BNI Connect",
-      "hint_id": "Pindai, atau <b>ketuk untuk membuka profil BNI Connect saya</b>.",
-      "hint_en": "Scan it, or <b>tap to open my BNI Connect profile</b>."
+      "hint_id": "Pindai, atau \u003cb>ketuk untuk membuka profil BNI Connect saya\u003c/b>.",
+      "hint_en": "Scan it, or \u003cb>tap to open my BNI Connect profile\u003c/b>."
     }
   },
   "bisnis": {
@@ -333,7 +333,8 @@ var DATA = {
             "label_id": "Peliharaan",
             "label_en": "Animals",
             "value_id": "",
-            "value_en": ""
+            "value_en": "",
+            "hidden": true
           },
           {
             "label_id": "Hobi",
@@ -357,7 +358,8 @@ var DATA = {
             "label_id": "Sudah Berapa Lama",
             "label_en": "How Long",
             "value_id": "",
-            "value_en": ""
+            "value_en": "",
+            "hidden": true
           }
         ],
         "photos": [
