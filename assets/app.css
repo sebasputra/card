@@ -678,9 +678,11 @@ a.qrtap:active{transform:translateY(0)}
   letter-spacing:.09em;text-transform:uppercase;color:var(--ink);
 }
 .qrhint{margin-top:6px;font-size:13.5px;line-height:1.5;letter-spacing:-.01em;color:var(--mu)}
+.qrhint b{color:var(--ink);font-weight:600}
 .dark .qrbox{background:rgba(245,245,247,.07);border-color:rgba(255,255,255,.12)}
 .dark .qrlab{color:var(--cream)}
 .dark .qrhint{color:var(--cream-dm)}
+.dark .qrhint b{color:var(--cream)}
 @media (prefers-reduced-motion: reduce){ a.qrtap:hover{transform:none} }
 
 /* ---------- pin BNI ---------- */

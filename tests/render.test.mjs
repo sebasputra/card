@@ -120,6 +120,11 @@ check('carousel ministry mulai dari slide pertama', mc && mc.querySelector('.car
 check('video ministry tidak dibungkam', mc && !mc.querySelector('video').dataset.mute);
 w.DATA.ministry.slides = keepMin;
 
+// ---- petunjuk QR BNI Connect: bagian ketuk ditebalkan
+BC.go(steps.indexOf('bni'));
+const qhb = w.document.querySelector('.qrhint b');
+check('petunjuk QR ditebalkan', !!qhb && qhb.textContent === 'tap to open my BNI Connect profile', qhb && qhb.textContent);
+
 // ---- Bio Sheet di step Personal: kolom kosong tidak tampil
 BC.go(steps.indexOf('personal'));
 const bsTxt = w.document.querySelector('.step').textContent;

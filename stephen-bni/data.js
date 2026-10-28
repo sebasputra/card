@@ -93,8 +93,8 @@ var DATA = {
       "url": "http://bnijakartautara.com/in/memberdetails?encryptedMemberId=DbGmeY22hqBewzRfphgTWQ%3D%3D&name=Stephen+Septian",
       "label_id": "BNI Connect",
       "label_en": "BNI Connect",
-      "hint_id": "Pindai, atau ketuk untuk membuka profil BNI Connect saya.",
-      "hint_en": "Scan it, or tap to open my BNI Connect profile."
+      "hint_id": "Pindai, atau <b>ketuk untuk membuka profil BNI Connect saya</b>.",
+      "hint_en": "Scan it, or <b>tap to open my BNI Connect profile</b>."
     }
   },
   "bisnis": {

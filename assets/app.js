@@ -254,7 +254,7 @@
       (tap ? '</a>' : '</div>') +
       '<div class="qrlab"' + ed(lp('bni.qr', 'label')) + '>' + esc(L(q, 'label')) + '</div>' +
       (has(L(q, 'hint')) || editing()
-        ? '<p class="qrhint"' + ed(lp('bni.qr', 'hint')) + '>' + esc(L(q, 'hint')) + '</p>' : '') +
+        ? '<p class="qrhint"' + ed(lp('bni.qr', 'hint'), 1) + '>' + L(q, 'hint') + '</p>' : '') +
       '</div>';
   }
 
