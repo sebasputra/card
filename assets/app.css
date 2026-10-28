@@ -541,6 +541,14 @@ body::after{
 .fact-t{font-size:16px;line-height:1.5;letter-spacing:-.02em;color:var(--mu)}
 .fact-t b{color:var(--ink);font-weight:600}
 
+/* ---------- bio sheet ---------- */
+.bs-h{margin-top:22px;font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--dm)}
+.bs-h + .meta{margin-top:10px}
+/* dua alamat kantor dipisah baris baru di data */
+.bs-h + .meta .meta-v{white-space:pre-line}
+/* label panjang (Miscellaneous) ditaruh di atas jawabannya */
+.bs-stack .meta-row{grid-template-columns:1fr;gap:4px}
+
 /* ---------- kontak (gelap) ---------- */
 .contact{
   margin-top:24px;border-radius:var(--r);overflow:hidden;

@@ -39,7 +39,7 @@
 /* ---------- teks yang bisa disunting ---------- */
 .app.editing [data-e]{
   outline:1px dashed rgba(176,137,60,.45);outline-offset:3px;
-  border-radius:2px;cursor:text;transition:outline-color .16s;
+  border-radius:2px;cursor:text;transition:outline-color .25s ease,background .25s ease;
 }
 .app.dark.editing [data-e]{outline-color:rgba(243,239,227,.32)}
 .app.editing [data-e]:hover{outline-color:var(--gold)}
@@ -88,7 +88,7 @@
   animation:none !important;pointer-events:none;z-index:20;
   box-shadow:0 12px 28px rgba(20,16,10,.3);opacity:.95;
 }
-.ed-shift{transition:transform .18s cubic-bezier(.3,.9,.3,1)}
+.ed-shift{transition:transform .34s var(--ed-ease)}
 
 .ed-x{
   position:absolute;top:-8px;right:-8px;width:19px;height:19px;z-index:6;
@@ -115,16 +115,22 @@
 .ed-sheet{
   position:absolute;inset:0;z-index:90;display:flex;align-items:flex-end;
   background:rgba(10,10,10,.55);backdrop-filter:blur(3px);
-  animation:edfade .18s ease both;
+  animation:edfade .3s ease both;
 }
 @keyframes edfade{from{opacity:0}to{opacity:1}}
+/* lembar yang menggantikan lembar lain: latar sudah gelap, jangan memudar ulang */
+.ed-sheet.swap{animation:none}
+.ed-sheet.out{animation:edfadeout .3s ease both;pointer-events:none}
+.ed-sheet.out .ed-box{animation:edsheetout .3s cubic-bezier(.4,0,.8,.4) both}
+@keyframes edfadeout{from{opacity:1}to{opacity:0}}
+@keyframes edsheet{from{transform:translateY(100%)}to{transform:none}}
+@keyframes edsheetout{from{transform:none}to{transform:translateY(100%)}}
 .ed-box{
   width:100%;background:var(--paper);color:var(--ink);
   padding:22px var(--pad) calc(22px + env(safe-area-inset-bottom));
   max-height:88%;overflow-y:auto;
-  animation:edup .26s cubic-bezier(.25,.85,.3,1) both;
+  animation:edsheet .5s var(--ed-ease) both;
 }
-@keyframes edup{from{transform:translateY(18px);opacity:.6}to{transform:none;opacity:1}}
 .ed-h{
   font-family:var(--h);font-weight:600;text-transform:uppercase;
   font-size:16px;letter-spacing:.09em;margin-bottom:6px;
@@ -189,8 +195,12 @@
   z-index:95;max-width:88%;
   background:var(--ink);color:var(--cream);
   font-size:12.5px;line-height:1.5;padding:11px 15px;
-  animation:edup .2s ease both;
+  animation:edtoast .4s var(--ed-ease) both;
 }
+/* translateX(-50%) ikut ditulis di keyframe, kalau tidak toast bergeser keluar dari tengah */
+@keyframes edtoast{from{transform:translate(-50%,14px) scale(.96);opacity:0}to{transform:translateX(-50%);opacity:1}}
+.ed-toast.out{animation:edtoastout .26s ease both}
+@keyframes edtoastout{from{transform:translateX(-50%);opacity:1}to{transform:translate(-50%,8px) scale(.97);opacity:0}}
 .ed-toast.good{background:#1F4A32}
 .ed-toast.bad{background:#7A2A1C}
 
@@ -202,9 +212,11 @@
   background:var(--ink);color:#fff;font-family:var(--b);font-size:30px;font-weight:300;line-height:1;
   display:flex;align-items:center;justify-content:center;
   box-shadow:0 10px 26px rgba(0,0,0,.28);
-  transition:transform .22s cubic-bezier(.3,.9,.3,1);
+  transition:transform .42s cubic-bezier(.34,1.4,.64,1);
 }
 .ed-fab.on{transform:rotate(45deg)}
+.ed-fab:active{transform:scale(.92)}
+.ed-fab.on:active{transform:rotate(45deg) scale(.92)}
 .app.dark .ed-fab{background:var(--cream);color:var(--ink)}
 .ed-menu{
   position:absolute;right:16px;bottom:calc(100% + 80px);z-index:31;
@@ -212,9 +224,11 @@
   background:rgba(255,255,255,.86);
   -webkit-backdrop-filter:saturate(180%) blur(22px);backdrop-filter:saturate(180%) blur(22px);
   box-shadow:0 18px 44px rgba(0,0,0,.22);
-  transform-origin:bottom right;animation:edpop .2s cubic-bezier(.25,.85,.3,1) both;
+  transform-origin:bottom right;animation:edpop .36s cubic-bezier(.34,1.3,.64,1) both;
 }
 @keyframes edpop{from{opacity:0;transform:scale(.9) translateY(6px)}to{opacity:1;transform:none}}
+.ed-menu.out{animation:edpopout .18s ease both;pointer-events:none}
+@keyframes edpopout{from{opacity:1;transform:none}to{opacity:0;transform:scale(.92) translateY(4px)}}
 .ed-menu button{
   display:flex;align-items:center;gap:12px;width:100%;padding:12px;border:none;border-radius:10px;
   background:none;color:var(--ink);font-family:var(--b);font-size:16px;letter-spacing:-.02em;
@@ -260,3 +274,32 @@
   touch-action:manipulation;
 }
 .ed-fmt button[data-f="del"]{background:#FF3B30}
+.ed-fmt{transform-origin:bottom left;animation:edpop .3s cubic-bezier(.34,1.3,.64,1) both}
+
+/* ---------- gerak ala iOS ---------- */
+/* kurva lembar iOS: cepat di awal, berhenti pelan tanpa memantul */
+:root{--ed-ease:cubic-bezier(.32,.72,0,1)}
+/* tombol mengecil sedikit saat ditekan, seperti tombol iOS */
+.ed-btn,.ed-add,.ed-menu button,.ed-fmt button,.ed-eye{transition:transform .2s var(--ed-ease),background .2s ease,border-color .2s ease}
+.ed-btn:active,.ed-add:active,.ed-menu button:active,.ed-fmt button:active,.ed-eye:active{transform:scale(.96)}
+/* render ulang di step yang sama saat menyunting: jangan putar ulang animasi masuk */
+.app.calm .step,
+.app.calm .tflat .tier-lvl,
+.app.calm .tflat .tier-body{animation:none}
+
+/* ---------- tombol hide baris Bio Sheet ---------- */
+.app.editing [data-hide]{position:relative;padding-right:42px}
+.ed-hide{
+  position:absolute;right:0;top:50%;transform:translateY(-50%);
+  width:32px;height:32px;padding:0;border:none;border-radius:50%;cursor:pointer;
+  background:rgba(0,0,0,.06);color:var(--mu);
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .2s var(--ed-ease),background .3s ease,color .3s ease;
+}
+.ed-hide svg{width:17px;height:17px}
+.ed-hide:active{transform:translateY(-50%) scale(.9)}
+.ed-hide[aria-pressed="true"]{background:var(--ink);color:#fff}
+.app.editing [data-hide] > .meta-k,
+.app.editing [data-hide] > .meta-v{transition:opacity .35s var(--ed-ease)}
+.app.editing .ed-off > .meta-k,
+.app.editing .ed-off > .meta-v{opacity:.35}

@@ -169,6 +169,37 @@ check('toolbar hilang setelah hapus', !$('.ed-fmt'));
 w.BioCard.go(w.BioCard.steps().map((s) => s.key).indexOf('connect'));
 check('kontak LinkedIn tampil', !!doc.querySelector('.contact a[href="https://www.linkedin.com/in/stephen-septian/"]'));
 
+// ---- tombol hide di Bio Sheet
+const personal = w.BioCard.steps().map((s) => s.key).indexOf('personal');
+w.BioCard.go(personal);
+const rowOf = (lbl) => [...doc.querySelectorAll('[data-hide]')].find((r) => r.querySelector('.meta-k').textContent === lbl);
+check('baris Bio Sheet dapat tombol mata', !!rowOf('Hobbies') && !!rowOf('Hobbies').querySelector('.ed-hide'));
+click(rowOf('Hobbies').querySelector('.ed-hide'));
+const hobRow = w.DATA.biosheet.groups[1].rows.find((r) => r.label_en === 'Hobbies');
+check('hide tersimpan di data', hobRow.hidden === true);
+check('baris redup tapi tetap ada saat menyunting', rowOf('Hobbies').classList.contains('ed-off'));
+w.BioCard.editing = false; w.BioCard.render();
+check('baris yang di-hide tidak tampil di kartu', !doc.querySelector('.step').textContent.includes('Badminton'));
+w.BioCard.editing = true; w.BioCard.render();
+click(rowOf('Hobbies').querySelector('.ed-hide'));
+check('tampilkan lagi menghapus tanda hide', !('hidden' in hobRow));
+
+// ---- alamat dua baris tidak menyatu saat disunting
+const loc = rowOf('Location').querySelector('.meta-v');
+loc.dispatchEvent(new w.FocusEvent('focus'));
+loc.textContent = loc.textContent.replace('Lantai 9', 'Lantai 10');
+loc.dispatchEvent(new w.FocusEvent('blur'));
+check('baris baru alamat tetap ada', w.DATA.biosheet.groups[0].rows[2].value_en.split('\n').length === 2,
+  JSON.stringify(w.DATA.biosheet.groups[0].rows[2].value_en.slice(0, 120)));
+
+// ---- render ulang saat menyunting tidak loncat ke atas dan tidak memutar animasi masuk
+doc.getElementById('stage').scrollTop = 240;
+w.BioCard.render();
+check('posisi gulir dipertahankan', doc.getElementById('stage').scrollTop === 240, String(doc.getElementById('stage').scrollTop));
+check('kelas calm dipasang', doc.getElementById('app').classList.contains('calm'));
+w.BioCard.go(0);
+check('pindah step tetap animasi masuk', !doc.getElementById('app').classList.contains('calm'));
+
 console.log('LULUS (' + ok.length + ')');
 ok.forEach((x) => console.log('  + ' + x));
 if (fail.length) {

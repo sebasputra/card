@@ -15,6 +15,7 @@ w.HTMLMediaElement.prototype.pause = function () {};
 w.HTMLMediaElement.prototype.load = function () {};
 // jsdom tidak punya scrollTo pada elemen; di browser ini ada
 w.Element.prototype.scrollTo = function () {};
+w.Element.prototype.scrollIntoView = function () {};
 // jsdom tidak punya IntersectionObserver; stub ini dipakai supaya jalur malas ikut diuji
 const observers = [];
 w.IntersectionObserver = class {
@@ -118,6 +119,32 @@ check('carousel ministry di antara judul dan chip',
 check('carousel ministry mulai dari slide pertama', mc && mc.querySelector('.car-dots i').classList.contains('on'));
 check('video ministry tidak dibungkam', mc && !mc.querySelector('video').dataset.mute);
 w.DATA.ministry.slides = keepMin;
+
+// ---- Bio Sheet di step Personal: kolom kosong tidak tampil
+BC.go(steps.indexOf('personal'));
+const bsTxt = w.document.querySelector('.step').textContent;
+check('Bio Sheet tampil di Personal', bsTxt.includes('Bio Sheet') && bsTxt.includes('Christine'));
+check('kolom Bio Sheet kosong disembunyikan', !bsTxt.includes('How Long') && !bsTxt.includes('Animals') && bsTxt.includes('Jakarta'));
+check('grup Miscellaneous ditumpuk', !!w.document.querySelector('.meta.bs-stack'));
+
+// ---- Top Ten Customers di step Referral, sebelum dan sesudah memilih tier
+BC.go(steps.indexOf('refer'));
+const t10 = () => [...w.document.querySelectorAll('[data-arr="top10.items"] .fact-n')].map((n) => n.textContent).join('');
+check('Top Ten Customers A-D di Referral', t10() === 'ABCD', t10());
+klik('#tiernav [data-tier="0"]');
+check('Top Ten tetap ada setelah pilih tier', t10() === 'ABCD', t10());
+
+// ---- pesan WhatsApp: nama di kalimat pertama, link kartu di akhir
+let waUrl = '';
+w.open = (u) => { waUrl = u; };
+klik('#wa');
+[['name', 'Budi'], ['brand', 'Kopi Budi'], ['chapter', 'Magnify'], ['class', 'F&B']].forEach(([k, v]) => {
+  w.document.getElementById('f_' + k).value = v;
+});
+klik('#wasend');
+const waMsg = decodeURIComponent((waUrl.split('?text=')[1] || ''));
+check('pesan WA dibuka dengan nama dan brand', waMsg.split('\n')[0].includes('Budi from Kopi Budi'), waMsg.split('\n')[0]);
+check('pesan WA diakhiri link kartu', waMsg.trim().endsWith('https://x.test/stephen-bni/'), waMsg.slice(-40));
 
 // ---- cover: foto hi-res + deret pin
 BC.go(0);

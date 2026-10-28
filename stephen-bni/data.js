@@ -253,6 +253,141 @@ var DATA = {
       }
     ]
   },
+  "top10": {
+    "title_id": "Top Ten Customers",
+    "title_en": "Top Ten Customers",
+    "items": [
+      {
+        "n": "A",
+        "id": "\u003cb>Demografi.\u003c/b> Owner dan founder bisnis yang sudah jalan dan tumbuh: properti, distribusi, klinik jaringan, jasa profesional, sampai F&B yang sedang scale.",
+        "en": "\u003cb>Demographics.\u003c/b> Owners and founders of established, growing businesses: property, distribution, clinic chains, professional services, and F&B brands that are scaling."
+      },
+      {
+        "n": "B",
+        "id": "\u003cb>Asosiasi.\u003c/b> Komunitas bisnis BNI, serta organisasi dan pelayanan gereja Katolik seperti Perduki dan PAKKJ.",
+        "en": "\u003cb>Association.\u003c/b> The BNI business community, and Catholic church organizations and ministries such as Perduki and PAKKJ."
+      },
+      {
+        "n": "C",
+        "id": "\u003cb>Cara saya menemukan mereka.\u003c/b> Lewat referral, terutama dari sesama member BNI dan jaringan pelayanan gereja.",
+        "en": "\u003cb>How I found them.\u003c/b> Through referrals, mostly from fellow BNI members and church ministry networks."
+      },
+      {
+        "n": "D",
+        "id": "\u003cb>Hot buttons.\u003c/b> Bisnisnya sudah besar tapi brand-nya belum ikut tumbuh, capek gonta-ganti freelancer yang hasilnya tidak pernah klop, dan melihat kompetitor tampil lebih premium.",
+        "en": "\u003cb>Hot buttons.\u003c/b> The business has grown but the brand hasn't kept up, they're tired of switching freelancers who never quite click, and competitors look more premium."
+      }
+    ]
+  },
+  "biosheet": {
+    "title_id": "Bio Sheet",
+    "title_en": "Bio Sheet",
+    "groups": [
+      {
+        "title_id": "Informasi Bisnis",
+        "title_en": "Business Information",
+        "rows": [
+          {
+            "label_id": "Nama Bisnis",
+            "label_en": "Business Name",
+            "value_id": "Increasink",
+            "value_en": "Increasink"
+          },
+          {
+            "label_id": "Profesi",
+            "label_en": "Profession",
+            "value_id": "Founder & Creative Director, branding agency",
+            "value_en": "Founder & Creative Director, branding agency"
+          },
+          {
+            "label_id": "Lokasi",
+            "label_en": "Location",
+            "value_id": "Gedung AD Premier Lantai 9, Jl. TB. Simatupang No. 5, Ragunan, Pasar Minggu, Jakarta Selatan\nJl. Letjen S. Parman No.28, RT.3/RW.5, Tj. Duren Sel., Kec. Grogol Petamburan, Kota Jakarta Barat, Daerah Khusus Ibukota Jakarta 11470",
+            "value_en": "Gedung AD Premier Lantai 9, Jl. TB. Simatupang No. 5, Ragunan, Pasar Minggu, Jakarta Selatan\nJl. Letjen S. Parman No.28, RT.3/RW.5, Tj. Duren Sel., Kec. Grogol Petamburan, Kota Jakarta Barat, Daerah Khusus Ibukota Jakarta 11470"
+          },
+          {
+            "label_id": "Pekerjaan Sebelumnya",
+            "label_en": "Previous Jobs",
+            "value_id": "Co-Founder & Creative Director, Dreamplanner",
+            "value_en": "Co-Founder & Creative Director, Dreamplanner"
+          }
+        ]
+      },
+      {
+        "title_id": "Informasi Pribadi",
+        "title_en": "Personal Information",
+        "rows": [
+          {
+            "label_id": "Istri",
+            "label_en": "Spouse",
+            "value_id": "Christine",
+            "value_en": "Christine"
+          },
+          {
+            "label_id": "Anak",
+            "label_en": "Children",
+            "value_id": "Wayne, Sharren, Brandt",
+            "value_en": "Wayne, Sharren, Brandt"
+          },
+          {
+            "label_id": "Peliharaan",
+            "label_en": "Animals",
+            "value_id": "",
+            "value_en": ""
+          },
+          {
+            "label_id": "Hobi",
+            "label_en": "Hobbies",
+            "value_id": "Badminton, padel",
+            "value_en": "Badminton, padel"
+          },
+          {
+            "label_id": "Minat",
+            "label_en": "Activities of Interest",
+            "value_id": "Pelayanan gereja, storytelling, film Christopher Nolan, belajar AI",
+            "value_en": "Church ministry, storytelling, Christopher Nolan films, learning AI"
+          },
+          {
+            "label_id": "Kota Tinggal",
+            "label_en": "City of Residence",
+            "value_id": "Jakarta",
+            "value_en": "Jakarta"
+          },
+          {
+            "label_id": "Sudah Berapa Lama",
+            "label_en": "How Long",
+            "value_id": "",
+            "value_en": ""
+          }
+        ]
+      },
+      {
+        "title_id": "Lain-lain",
+        "title_en": "Miscellaneous",
+        "stack": true,
+        "rows": [
+          {
+            "label_id": "Keinginan terbesar saya adalah...",
+            "label_en": "My burning desire is to...",
+            "value_id": "",
+            "value_en": ""
+          },
+          {
+            "label_id": "Hal yang belum banyak orang tahu tentang saya",
+            "label_en": "Something no one knows about me",
+            "value_id": "Nama ketiga anak saya punya cerita: Wayne dari Batman, Sharren dari kata share, Brandt dari kata brand.",
+            "value_en": "My three kids' names each have a story: Wayne after Batman, Sharren from the word share, Brandt from the word brand."
+          },
+          {
+            "label_id": "Kunci sukses saya adalah...",
+            "label_en": "My key to success is...",
+            "value_id": "",
+            "value_en": ""
+          }
+        ]
+      }
+    ]
+  },
   "wa_form": {
     "head_id": "Let's Connect",
     "head_en": "Let's Connect",
@@ -288,8 +423,8 @@ var DATA = {
         "required": true
       }
     ],
-    "template_id": "Halo Pak Stephen, saya baru lihat Bio GAINS Anda dan ingin terhubung.\n\nNama: {name}\nBrand Usaha: {brand}\nBNI Chapter: {chapter}\nKlasifikasi Bisnis: {class}",
-    "template_en": "Hi Stephen, I just saw your Bio GAINS and would love to connect.\n\nName: {name}\nBusiness Brand: {brand}\nBNI Chapter: {chapter}\nBusiness Classification: {class}"
+    "template_id": "Halo Pak Stephen, saya {name} dari {brand}. Saya baru lihat Bio GAINS Anda dan ingin terhubung.\n\nNama: {name}\nBrand Usaha: {brand}\nBNI Chapter: {chapter}\nKlasifikasi Bisnis: {class}\n\nBio GAINS Stephen Septian:\n{link}",
+    "template_en": "Hi Stephen, this is {name} from {brand}. I just saw your Bio GAINS and would love to connect.\n\nName: {name}\nBusiness Brand: {brand}\nBNI Chapter: {chapter}\nBusiness Classification: {class}\n\nStephen Septian's Bio GAINS:\n{link}"
   },
   "order": {
     "steps": [

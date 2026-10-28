@@ -93,9 +93,11 @@
 
   /* ================= lembar ================= */
   function sheet(html, onMount) {
-    closeSheet();
+    // lembar yang diganti lembar lain langsung dibuang, latar gelapnya tidak perlu memudar ulang
+    var prev = app().querySelectorAll('.ed-sheet');
+    Array.prototype.forEach.call(prev, function (x) { x.remove(); });
     var s = document.createElement('div');
-    s.className = 'ed-sheet';
+    s.className = 'ed-sheet' + (prev.length ? ' swap' : '');
     s.innerHTML = '<div class="ed-box">' + html + '</div>';
     s.addEventListener('pointerdown', function (e) { if (e.target === s) closeSheet(); });
     app().appendChild(s);
@@ -103,8 +105,14 @@
     return s;
   }
   function closeSheet() {
-    var s = app() && app().querySelector('.ed-sheet');
-    if (s) s.remove();
+    var s = app() && app().querySelector('.ed-sheet:not(.out)');
+    if (s) leave(s, 320);
+  }
+
+  /* Animasi keluar dulu, baru dibuang. Waktunya sama dengan animasi keluar di editor.css. */
+  function leave(nd, ms) {
+    nd.classList.add('out');
+    setTimeout(function () { if (nd.parentNode) nd.remove(); }, ms);
   }
 
   function toast(msg, kind) {
@@ -114,7 +122,7 @@
     t.className = 'ed-toast' + (kind ? ' ' + kind : '');
     t.textContent = msg;
     app().appendChild(t);
-    if (kind !== 'wait') setTimeout(function () { if (t.parentNode) t.remove(); }, 4200);
+    if (kind !== 'wait') setTimeout(function () { if (t.parentNode) leave(t, 260); }, 4200);
     return t;
   }
 
@@ -662,7 +670,7 @@
     var c = nd.cloneNode(true);
     Array.prototype.forEach.call(c.querySelectorAll('.ed-x'), function (x) { x.remove(); });
     var v = nd.dataset.rich ? c.innerHTML : (c.textContent || '');
-    v = v.replace(/ /g, ' ').replace(/\s+/g, ' ').trim();
+    v = v.replace(/ /g, ' ').replace(/[^\S\n]+/g, ' ').replace(/ ?\n ?/g, '\n').trim();  // baris baru dipertahankan (alamat dua baris)
     if (nd.dataset.prefix && v.indexOf(nd.dataset.prefix) === 0) v = v.slice(nd.dataset.prefix.length);
     return v;
   }
@@ -839,14 +847,14 @@
   function closeMenu() {
     var a = app();
     if (!a) return;
-    var m = a.querySelector('.ed-menu');
-    if (m) m.remove();
+    var m = a.querySelector('.ed-menu:not(.out)');
+    if (m) leave(m, 180);
     var f = a.querySelector('.ed-fab');
     if (f) f.classList.remove('on');
   }
 
   function toggleMenu(bar) {
-    if (bar.querySelector('.ed-menu')) { closeMenu(); return; }
+    if (bar.querySelector('.ed-menu:not(.out)')) { closeMenu(); return; }
     var m = document.createElement('div');
     m.className = 'ed-menu';
     m.setAttribute('role', 'menu');
@@ -1104,7 +1112,36 @@
     wireArrays(a);
     wireMedia(a);
     wireSlides(a);
+    wireHide(a);
     a.appendChild(buildBar());
+  }
+
+  /* Tombol mata di baris Bio Sheet: sembunyikan dari kartu tanpa menghapus isinya.
+     Cukup ubah data dan kelas, tanpa BC.render(), supaya tidak ada yang melompat. */
+  function wireHide(root) {
+    Array.prototype.forEach.call(root.querySelectorAll('[data-hide]'), function (row) {
+      var b = document.createElement('button');
+      b.className = 'ed-hide';
+      b.setAttribute('contenteditable', 'false');
+      function paintEye() {
+        var off = row.classList.contains('ed-off');
+        b.innerHTML = off ? EYE_OFF : EYE_ON;
+        b.setAttribute('aria-pressed', off ? 'true' : 'false');
+        b.setAttribute('aria-label', off ? T('Tampilkan di kartu', 'Show on card') : T('Sembunyikan dari kartu', 'Hide from card'));
+      }
+      b.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var r = pget(BC.data(), row.dataset.hide);
+        if (!r) return;
+        if (r.hidden) delete r.hidden; else r.hidden = true;
+        row.classList.toggle('ed-off', !!r.hidden);
+        paintEye();
+        saveDraft();
+      });
+      paintEye();
+      row.appendChild(b);
+    });
   }
 
   /* ================= penjaga interaksi saat menyunting ================= */

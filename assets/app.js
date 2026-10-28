@@ -324,8 +324,45 @@
     return '<div class="step">' +
       h2(L(m, 'title'), lp('ministry', 'title')) + mcar + chips(m.chips, 'ministry.chips') +
       '<div style="height:26px"></div>' + h2(L(o, 'title'), lp('offrecord', 'title')) +
-      '<div class="facts" data-arr="offrecord.facts" data-kind="fact">' + facts + '</div></div>';
+      '<div class="facts" data-arr="offrecord.facts" data-kind="fact">' + facts + '</div>' +
+      bioSheetHtml() + '</div>';
   };
+
+  /* BNI Member Bio Sheet. Kolom kosong tidak tampil, kecuali saat menyunting
+     supaya bisa diisi dari editor. Grup tanpa isi ikut hilang. */
+  function bioSheetHtml() {
+    var b = D.biosheet;
+    if (!b) return '';
+    var groups = (b.groups || []).map(function (g, gi) {
+      var gp = 'biosheet.groups.' + gi;
+      var rows = (g.rows || []).map(function (r, ri) {
+        var rp = gp + '.rows.' + ri, v = L(r, 'value');
+        if ((!has(v) || r.hidden) && !editing()) return '';
+        // saat menyunting, baris yang di-hide tetap tampil redup dan diberi tombol mata oleh editor
+        var hd = editing() ? ' data-hide="' + esc(rp) + '"' : '';
+        return '<div class="meta-row' + (r.hidden ? ' ed-off' : '') + '"' + hd + '><div class="meta-k"' + ed(lp(rp, 'label')) + '>' + esc(L(r, 'label')) + '</div>' +
+          '<div class="meta-v"' + ed(lp(rp, 'value')) + '>' + esc(v) + '</div></div>';
+      }).join('');
+      if (!rows) return '';
+      return '<div class="bs-h"' + ed(lp(gp, 'title')) + '>' + esc(L(g, 'title')) + '</div>' +
+        '<div class="meta' + (g.stack ? ' bs-stack' : '') + '">' + rows + '</div>';
+    }).join('');
+    if (!groups) return '';
+    return '<div style="height:26px"></div>' + h2(L(b, 'title'), lp('biosheet', 'title')) + groups;
+  }
+
+  /* Top Ten Customers versi BNI: A Demographics, B Association, C How you found them, D Hot buttons. */
+  function top10Html() {
+    var t = D.top10;
+    if (!t) return '';
+    var items = (t.items || []).map(function (f, i) {
+      return '<div class="fact"><div class="fact-n"' + ed('top10.items.' + i + '.n') + '>' + esc(f.n) + '</div>' +
+        '<div class="fact-t"' + ed('top10.items.' + i + '.' + lang, 1) + '>' + (f[lang] || f.id || f.en || '') + '</div></div>';
+    }).join('');
+    if (!items && !editing()) return '';
+    return '<div style="height:26px"></div>' + h2(L(t, 'title'), lp('top10', 'title')) +
+      '<div class="facts" data-arr="top10.items" data-kind="fact">' + items + '</div>';
+  }
 
   /* Tumpukan 3D cuma ilustrasi. Pilihan tier lewat tombol di bawahnya,
      karena lapisan 3D terlalu kecil untuk diketuk jari. */
@@ -358,7 +395,7 @@
           '<b class="nm">' + esc(x.name || '') + '</b></div>';
       }).join('');
       return head + '<div class="burger" id="burger"><div class="scene">' + slabs + '</div></div>' + nav +
-        '<p class="pick">' + T('Pilih salah satu lapisan.', 'Pick one of the layers.') + '</p></div>';
+        '<p class="pick">' + T('Pilih salah satu lapisan.', 'Pick one of the layers.') + '</p>' + top10Html() + '</div>';
     }
     var flats = list.map(function (x, i) {
       var tp = 'refer.tiers.' + i;
@@ -367,7 +404,7 @@
         '<div class="tier-lvl"' + ed(lp(tp, 'level')) + '>' + esc(L(x, 'level')) + '</div>' +
         '<p class="tier-body"' + ed(lp(tp, 'body')) + '>' + esc(L(x, 'body')) + '</p></div>';
     }).join('');
-    return head + nav + '<div class="tflats" id="tflats">' + flats + '</div></div>';
+    return head + nav + '<div class="tflats" id="tflats">' + flats + '</div>' + top10Html() + '</div>';
   };
 
   view.connect = function () {
@@ -490,11 +527,17 @@
   }
 
   /* ---------- shell ---------- */
+  var lastStep = -1;
   function render() {
     var s = STEPS[step];
+    // Saat menyunting, render ulang di step yang sama (tambah, hapus, geser item) jangan
+    // loncat ke atas dan jangan memutar ulang animasi masuk halaman.
+    var calm = editing() && step === lastStep;
+    var keepY = calm && el('stage') ? el('stage').scrollTop : 0;
+    lastStep = step;
     var pct = Math.round((step / (STEPS.length - 1)) * 100);
     var app = el('app');
-    app.className = 'app' + (s.dark ? ' dark' : '');
+    app.className = 'app' + (s.dark ? ' dark' : '') + (calm ? ' calm' : '');
 
     var topnav = s.key === 'cover'
       ? ''
@@ -543,6 +586,7 @@
 
     app.innerHTML = topnav + '<div class="stage" id="stage">' + body + '</div>' +
       footer + '<div class="modal" id="modal"></div>';
+    if (keepY) el('stage').scrollTop = keepY;
 
     bind();
     (window.BioCard.onRender || []).forEach(function (fn) {
@@ -925,6 +969,8 @@
       if (firstMiss.focus) firstMiss.focus();
       return;
     }
+    // link kartu ikut di pesan, supaya pengirim bisa balik ke kartu dari chat WhatsApp
+    vals.link = location.href.split('#')[0];
     var msg = L(f, 'template').replace(/\{(\w+)\}/g, function (_, k) {
       return has(vals[k]) ? vals[k] : T('(tidak diisi)', '(not filled)');
     });
