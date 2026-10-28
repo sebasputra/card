@@ -343,9 +343,15 @@
         return '<div class="meta-row' + (r.hidden ? ' ed-off' : '') + '"' + hd + '><div class="meta-k"' + ed(lp(rp, 'label')) + '>' + esc(L(r, 'label')) + '</div>' +
           '<div class="meta-v"' + ed(lp(rp, 'value')) + '>' + esc(v) + '</div></div>';
       }).join('');
-      if (!rows) return '';
+      // strip foto kecil di bawah baris, tiga terlihat, sisanya digeser
+      var photos = (g.photos || []).map(function (p, pi) {
+        if (!p || !has(p.src)) return '';
+        return '<div class="bs-ph"><img src="' + esc(p.src) + '" alt="' + esc(L(p, 'alt')) + '" loading="lazy" data-img="' + gp + '.photos.' + pi + '.src"></div>';
+      }).join('');
+      if (!rows && !photos) return '';
       return '<div class="bs-h"' + ed(lp(gp, 'title')) + '>' + esc(L(g, 'title')) + '</div>' +
-        '<div class="meta' + (g.stack ? ' bs-stack' : '') + '">' + rows + '</div>';
+        '<div class="meta' + (g.stack ? ' bs-stack' : '') + '">' + rows +
+        (photos ? '<div class="bs-photos">' + photos + '</div>' : '') + '</div>';
     }).join('');
     if (!groups) return '';
     return '<div style="height:26px"></div>' + h2(L(b, 'title'), lp('biosheet', 'title')) + groups;

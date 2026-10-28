@@ -359,6 +359,23 @@ var DATA = {
             "value_id": "",
             "value_en": ""
           }
+        ],
+        "photos": [
+          {
+            "src": "img/personal-speaker.webp",
+            "alt_id": "Stephen menjadi pembicara di Edu Moment BNI Sovereign",
+            "alt_en": "Stephen speaking at Edu Moment, BNI Sovereign"
+          },
+          {
+            "src": "img/personal-family.webp",
+            "alt_id": "Stephen bersama istri dan ketiga anaknya",
+            "alt_en": "Stephen with his wife and three kids"
+          },
+          {
+            "src": "img/personal-prodiakon.webp",
+            "alt_id": "Pelayanan prodiakon",
+            "alt_en": "Serving as an extraordinary minister of Holy Communion"
+          }
         ]
       },
       {

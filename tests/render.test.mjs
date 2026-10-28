@@ -131,6 +131,9 @@ const bsTxt = w.document.querySelector('.step').textContent;
 check('Bio Sheet tampil di Personal', bsTxt.includes('Bio Sheet') && bsTxt.includes('Christine'));
 check('kolom Bio Sheet kosong disembunyikan', !bsTxt.includes('How Long') && !bsTxt.includes('Animals') && bsTxt.includes('Jakarta'));
 check('grup Miscellaneous ditumpuk', !!w.document.querySelector('.meta.bs-stack'));
+const bsPh = [...w.document.querySelectorAll('.bs-photos img')].map((i) => i.getAttribute('src'));
+check('strip foto Informasi Pribadi: speaker, keluarga, prodiakon', bsPh.join() === 'img/personal-speaker.webp,img/personal-family.webp,img/personal-prodiakon.webp', bsPh.join());
+check('strip foto ada di dalam kartu Informasi Pribadi', !!w.document.querySelector('.meta .bs-photos'));
 
 // ---- Top Ten Customers di step Referral, sebelum dan sesudah memilih tier
 BC.go(steps.indexOf('refer'));

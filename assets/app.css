@@ -548,6 +548,15 @@ body::after{
 .bs-h + .meta .meta-v{white-space:pre-line}
 /* label panjang (Miscellaneous) ditaruh di atas jawabannya */
 .bs-stack .meta-row{grid-template-columns:1fr;gap:4px}
+/* strip foto di bawah baris: tiga kotak sejajar, foto keempat dan seterusnya digeser */
+.bs-photos{
+  display:grid;grid-auto-flow:column;grid-auto-columns:calc((100% - 16px) / 3);gap:8px;
+  padding:14px 0 16px;border-top:1px solid var(--line);
+  overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;
+}
+.bs-photos::-webkit-scrollbar{display:none}
+.bs-ph{scroll-snap-align:start}
+.bs-ph img{display:block;width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;border:1px solid rgba(255,255,255,.6)}
 
 /* ---------- kontak (gelap) ---------- */
 .contact{
