@@ -189,7 +189,8 @@ const loc = rowOf('Location').querySelector('.meta-v');
 loc.dispatchEvent(new w.FocusEvent('focus'));
 loc.textContent = loc.textContent.replace('Lantai 9', 'Lantai 10');
 loc.dispatchEvent(new w.FocusEvent('blur'));
-check('baris baru alamat tetap ada', w.DATA.biosheet.groups[0].rows[2].value_en.split('\n').length === 2,
+check('baris baru alamat tetap ada', w.DATA.biosheet.groups[0].rows[2].value_en.split('\n').length === 7 &&
+  w.DATA.biosheet.groups[0].rows[2].value_en.split('\n\n').length === 2,
   JSON.stringify(w.DATA.biosheet.groups[0].rows[2].value_en.slice(0, 120)));
 
 // ---- render ulang saat menyunting tidak loncat ke atas dan tidak memutar animasi masuk

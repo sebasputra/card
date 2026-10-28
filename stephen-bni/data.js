@@ -302,8 +302,8 @@ var DATA = {
           {
             "label_id": "Lokasi",
             "label_en": "Location",
-            "value_id": "Gedung AD Premier Lantai 9, Jl. TB. Simatupang No. 5, Ragunan, Pasar Minggu, Jakarta Selatan\nJl. Letjen S. Parman No.28, RT.3/RW.5, Tj. Duren Sel., Kec. Grogol Petamburan, Kota Jakarta Barat, Daerah Khusus Ibukota Jakarta 11470",
-            "value_en": "Gedung AD Premier Lantai 9, Jl. TB. Simatupang No. 5, Ragunan, Pasar Minggu, Jakarta Selatan\nJl. Letjen S. Parman No.28, RT.3/RW.5, Tj. Duren Sel., Kec. Grogol Petamburan, Kota Jakarta Barat, Daerah Khusus Ibukota Jakarta 11470"
+            "value_id": "Gedung AD Premier Lantai 9\nJl. TB. Simatupang No. 5, Ragunan,\nPasar Minggu, Jakarta Selatan\n\nJl. Letjen S. Parman No. 28, RT.3/RW.5,\nTj. Duren Sel., Kec. Grogol Petamburan,\nKota Jakarta Barat, Daerah Khusus Ibukota Jakarta 11470",
+            "value_en": "Gedung AD Premier Lantai 9\nJl. TB. Simatupang No. 5, Ragunan,\nPasar Minggu, Jakarta Selatan\n\nJl. Letjen S. Parman No. 28, RT.3/RW.5,\nTj. Duren Sel., Kec. Grogol Petamburan,\nKota Jakarta Barat, Daerah Khusus Ibukota Jakarta 11470"
           },
           {
             "label_id": "Pekerjaan Sebelumnya",
