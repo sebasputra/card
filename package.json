@@ -10,6 +10,6 @@
     "jsdom": "^30.0.1"
   },
   "scripts": {
-    "test": "node tests/render.test.mjs && node tests/editor.test.mjs"
+    "test": "node tests/render.test.mjs && node tests/vcard.test.mjs && node tests/editor.test.mjs"
   }
 }

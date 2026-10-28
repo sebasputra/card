@@ -138,6 +138,8 @@ check('Top Ten tetap ada setelah pilih tier', t10() === 'ABCD', t10());
 let waUrl = '';
 w.open = (u) => { waUrl = u; };
 klik('#wa');
+const sv = w.document.getElementById('wasave');
+check('tombol Simpan kontak di modal WA', !!sv && sv.getAttribute('href').startsWith('/api/vcard?card=stephen-bni&u='), sv && sv.getAttribute('href'));
 [['name', 'Budi'], ['brand', 'Kopi Budi'], ['chapter', 'Magnify'], ['class', 'F&B']].forEach(([k, v]) => {
   w.document.getElementById('f_' + k).value = v;
 });

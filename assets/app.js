@@ -940,10 +940,15 @@
         '<input id="f_' + esc(fd.key) + '" autocomplete="' + esc(fd.autocomplete || 'off') + '"></div>';
     }).join('');
     var logo = (D.images || {}).logo;
+    // simpan kontak dulu sebelum ke WhatsApp, karena dari WhatsApp orang jarang kembali ke kartu
+    var vcf = has(D.id) ? '/api/vcard?card=' + encodeURIComponent(D.id) +
+      '&u=' + encodeURIComponent(location.href.split('#')[0]) : '';
     m.innerHTML = '<div class="box" role="dialog" aria-modal="true">' +
       (has(logo) ? '<img class="box-logo" src="' + esc(logo) + '" alt="Increasink">' : '') +
       '<div class="box-h">' + esc(L(f, 'head')) + '</div>' +
-      '<p class="box-s">' + esc(L(f, 'sub')) + '</p>' + fields +
+      '<p class="box-s">' + esc(L(f, 'sub')) + '</p>' +
+      (vcf ? '<a class="btn ghost" id="wasave" href="' + esc(vcf) + '">' + svg('person') +
+        T('Simpan kontak saya', 'Save my contact') + '</a>' : '') + fields +
       '<div class="err" id="waerr">' + T('Semua kolom wajib diisi.', 'Please fill in every field.') + '</div>' +
       '<button class="btn" id="wasend" style="margin-top:20px">' + svg('wa') + T('Kirim ke WhatsApp', 'Send to WhatsApp') + '</button>' +
       '<button class="skip" id="wacancel" style="width:100%;margin-top:8px">' + T('Batal', 'Cancel') + '</button></div>';
