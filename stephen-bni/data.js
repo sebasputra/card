@@ -477,8 +477,8 @@ var DATA = {
             {
               "label_id": "Kota Tinggal",
               "label_en": "City of Residence",
-              "value_id": "Jakarta",
-              "value_en": "Jakarta"
+              "value_id": "Jakarta Barat",
+              "value_en": "West Jakarta"
             },
             {
               "label_id": "Sudah Berapa Lama",
