@@ -344,6 +344,26 @@ var DATA = {
           "slides": [
             {
               "type": "image",
+              "src": "img/interest-padel-2.webp"
+            },
+            {
+              "type": "image",
+              "src": "img/interest-padel-1.webp"
+            },
+            {
+              "type": "image",
+              "src": "img/interest-padel-3.webp"
+            },
+            {
+              "type": "image",
+              "src": "img/interest-padel-4.webp"
+            },
+            {
+              "type": "image",
+              "src": "img/interest-badminton-1.webp"
+            },
+            {
+              "type": "image",
               "src": "img/ministry-1.webp"
             },
             {

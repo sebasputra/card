@@ -242,7 +242,7 @@ goKey('personal');
 const mb = $('.mincar') && $('.mincar').nextElementSibling;
 check('tombol Atur foto dan video di bawah carousel ministry', !!mb && mb.classList.contains('ed-img-btn'), mb && mb.className);
 click(mb);
-check('lembar ministry berisi 2 foto', $$('#edslides .ed-tile').length === 2);
+check('lembar My Interests berisi 7 foto', $$('#edslides .ed-tile').length === 7);
 click($('.ed-sheet [data-a="ok"]'));
 
 // ---- Jadikan patokan, lalu kembalikan

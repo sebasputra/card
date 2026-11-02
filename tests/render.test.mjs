@@ -107,7 +107,7 @@ klik('#vsound');
 
 // ---- My Ministry: carousel kosong tidak tampil, yang berisi tampil di antara judul dan chip
 BC.go(steps.indexOf('personal'));
-check('ministry berisi 2 foto sementara', w.document.querySelectorAll('.mincar .car-slide img').length === 2);
+check('My Interests berisi 7 foto (padel, badminton, ministry)', w.document.querySelectorAll('.mincar .car-slide img').length === 7);
 const minW = widget('personal', 'carousel');
 const keepMin = minW.slides;
 minW.slides = [];
