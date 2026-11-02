@@ -39,8 +39,8 @@ check('jabatan dan perusahaan', txt.includes('TITLE:Founder & Creative Director'
 check('nomor WhatsApp', txt.includes('TEL;TYPE=CELL,VOICE:+62817714647'));
 check('email', txt.includes('stephen@increasink.co.id'));
 check('link kartu tanpa query', txt.includes('item1.URL:https://x.test/bni/\r\n'));
-check('dua alamat kantor', (txt.match(/^ADR;/gm) || []).length === 2);
-check('koma di alamat di-escape', txt.includes('Jl. TB. Simatupang No. 5\\, Ragunan'));
+check('baris Location disembunyikan, jadi tanpa alamat', !/^ADR;/m.test(txt));
+check('catatan pengingat di kontak', txt.includes('NOTE:BNI Magnify\\, social media branding'));
 check('foto tertanam', /PHOTO;ENCODING=b;TYPE=JPEG:\/9j\//.test(txt));
 check('baris dilipat maks 75', r.body.split('\r\n').every((l) => l.length <= 75));
 
@@ -53,11 +53,15 @@ check('baris dilipat maks 75', r.body.split('\r\n').every((l) => l.length <= 75)
   dom.window.eval(readFileSync(ROOT + 'stephen-bni/data.js', 'utf8'));
   dom.window.eval(readFileSync(ROOT + 'assets/app.js', 'utf8'));
   const d = dom.window.BioCard.data();
+  // baris Location dimunculkan lagi supaya pembacaan alamat tetap teruji
+  d.pages.flatMap((p) => p.widgets).filter((w) => w.type === 'table').flatMap((w) => w.rows)
+    .filter((x) => x.label_en === 'Location').forEach((x) => { delete x.hidden; });
   V2['v2-test/data.js'] = 'var DATA = ' + JSON.stringify(d) + ';';
   check('data terkonversi tanpa biosheet', Array.isArray(d.pages) && !d.biosheet);
   const r2 = await call({ card: 'v2-test', u: '' });
   const t2 = r2.body.replace(/\r\n /g, '');
   check('format widget: tetap dua alamat kantor', (t2.match(/^ADR;/gm) || []).length === 2, String((t2.match(/^ADR;/gm) || []).length));
+  check('koma di alamat di-escape', t2.includes('Jl. TB. Simatupang No. 5\\, Ragunan'));
   check('format widget: nama dan email tetap', t2.includes('FN:Stephen Septian') && t2.includes('stephen@increasink.co.id'));
 }
 

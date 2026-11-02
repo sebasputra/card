@@ -32,7 +32,8 @@ var DATA = {
     "email": "stephen@increasink.co.id",
     "ig": "stephenseptian",
     "linkedin": "stephen-septian",
-    "web": "increasink.co.id"
+    "web": "increasink.co.id",
+    "vcf_note": "BNI Magnify, social media branding"
   },
   "hero": {
     "name": "Stephen Septian",
@@ -78,8 +79,8 @@ var DATA = {
         "required": true
       }
     ],
-    "template_id": "Halo Pak Stephen, saya {name} dari {brand}. Saya baru lihat Bio GAINS Anda dan ingin terhubung.\n\nNama: {name}\nBrand Usaha: {brand}\nBNI Chapter: {chapter}\nKlasifikasi Bisnis: {class}\n\nBio GAINS Stephen Septian:\n{link}",
-    "template_en": "Hi Stephen, this is {name} from {brand}. I just saw your Bio GAINS and would love to connect.\n\nName: {name}\nBusiness Brand: {brand}\nBNI Chapter: {chapter}\nBusiness Classification: {class}\n\nStephen Septian's Bio GAINS:\n{link}"
+    "template_id": "Halo Pak Stephen Septian dari Increasink, saya {name} dari {brand}. Saya baru lihat Bio GAINS Anda dan ingin terhubung.\n\nNama: {name}\nBrand Usaha: {brand}\nBNI Chapter: {chapter}\nKlasifikasi Bisnis: {class}\n\nDetail Stephen Septian:\nFounder & Creative Director, Increasink\nBranding agency, social media branding\nBNI Magnify\nInstagram: @stephenseptian\nWebsite: increasink.co.id\n\nBio GAINS: {link}\nSimpan kontak: {vcf}",
+    "template_en": "Hi Stephen Septian from Increasink, this is {name} from {brand}. I just saw your Bio GAINS and would love to connect.\n\nName: {name}\nBusiness Brand: {brand}\nBNI Chapter: {chapter}\nBusiness Classification: {class}\n\nStephen Septian's details:\nFounder & Creative Director, Increasink\nBranding agency, social media branding\nBNI Magnify\nInstagram: @stephenseptian\nWebsite: increasink.co.id\n\nBio GAINS: {link}\nSave contact: {vcf}"
   },
   "version": 2,
   "pages": [
@@ -425,7 +426,8 @@ var DATA = {
               "label_id": "Lokasi",
               "label_en": "Location",
               "value_id": "Gedung AD Premier Lantai 9\nJl. TB. Simatupang No. 5, Ragunan,\nPasar Minggu, Jakarta Selatan\n\nJl. Letjen S. Parman No. 28, RT.3/RW.5,\nTj. Duren Sel., Kec. Grogol Petamburan,\nKota Jakarta Barat, Daerah Khusus Ibukota Jakarta 11470",
-              "value_en": "Gedung AD Premier Lantai 9\nJl. TB. Simatupang No. 5, Ragunan,\nPasar Minggu, Jakarta Selatan\n\nJl. Letjen S. Parman No. 28, RT.3/RW.5,\nTj. Duren Sel., Kec. Grogol Petamburan,\nKota Jakarta Barat, Daerah Khusus Ibukota Jakarta 11470"
+              "value_en": "Gedung AD Premier Lantai 9\nJl. TB. Simatupang No. 5, Ragunan,\nPasar Minggu, Jakarta Selatan\n\nJl. Letjen S. Parman No. 28, RT.3/RW.5,\nTj. Duren Sel., Kec. Grogol Petamburan,\nKota Jakarta Barat, Daerah Khusus Ibukota Jakarta 11470",
+              "hidden": true
             },
             {
               "label_id": "Pekerjaan Sebelumnya",
@@ -469,8 +471,8 @@ var DATA = {
             {
               "label_id": "Minat",
               "label_en": "Activities of Interest",
-              "value_id": "Pelayanan gereja, storytelling, film Christopher Nolan, belajar AI",
-              "value_en": "Church ministry, storytelling, Christopher Nolan films, learning AI"
+              "value_id": "Padel, badminton, pelayanan gereja, storytelling, film Christopher Nolan, belajar AI",
+              "value_en": "Padel, badminton, church ministry, storytelling, Christopher Nolan films, learning AI"
             },
             {
               "label_id": "Kota Tinggal",
@@ -544,8 +546,8 @@ var DATA = {
             {
               "label_id": "Kunci sukses saya adalah...",
               "label_en": "My key to success is...",
-              "value_id": "",
-              "value_en": ""
+              "value_id": "Pantang menyerah, selalu melihat dari sisi positif, tekun, dan ingat bahwa ini maraton. Saya percaya apa pun yang dikerjakan dengan hati pasti berbuah.",
+              "value_en": "Never giving up, seeing things positively, persistence, and remembering it's a marathon. I believe anything done with the heart will bear fruit."
             }
           ],
           "stack": true

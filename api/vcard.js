@@ -45,6 +45,8 @@ export default async function handler(req, res) {
   if (c.wa) L.push('TEL;TYPE=CELL,VOICE:+' + String(c.wa).replace(/\D/g, ''));
   if (c.email) L.push('EMAIL;TYPE=INTERNET,WORK:' + v(c.email));
   if (c.web) L.push('URL;TYPE=WORK:' + v(/^https?:/.test(c.web) ? c.web : 'https://' + c.web));
+  // pengingat singkat di kontak, contoh "BNI Magnify, social media branding"
+  if (c.vcf_note) L.push('NOTE:' + v(c.vcf_note));
 
   // link kartu Bio GAINS, hanya kalau menunjuk ke domain ini sendiri
   try {

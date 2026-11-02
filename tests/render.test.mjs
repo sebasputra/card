@@ -171,7 +171,9 @@ check('tombol Simpan kontak di modal WA', !!sv && sv.getAttribute('href').starts
 klik('#wasend');
 const waMsg = decodeURIComponent((waUrl.split('?text=')[1] || ''));
 check('pesan WA dibuka dengan nama dan brand', waMsg.split('\n')[0].includes('Budi from Kopi Budi'), waMsg.split('\n')[0]);
-check('pesan WA diakhiri link kartu', waMsg.trim().endsWith('https://x.test/stephen-bni/'), waMsg.slice(-40));
+check('pesan WA berisi link kartu', waMsg.includes('Bio GAINS: https://x.test/stephen-bni/\n'), waMsg.slice(-120));
+check('pesan WA diakhiri link simpan kontak', waMsg.trim().endsWith('https://x.test/api/vcard?card=stephen-bni'), waMsg.slice(-60));
+check('pesan WA berisi detail Stephen', waMsg.includes('Increasink') && waMsg.includes('social media branding') && waMsg.includes('BNI Magnify'));
 
 // ---- cover: foto hi-res + deret pin
 BC.go(0);

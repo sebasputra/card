@@ -1224,6 +1224,8 @@
     }
     // link kartu ikut di pesan, supaya pengirim bisa balik ke kartu dari chat WhatsApp
     vals.link = location.href.split('#')[0];
+    // file kontak juga ikut, supaya bisa disimpan langsung dari chat
+    if (has(D.id)) vals.vcf = location.origin + '/api/vcard?card=' + encodeURIComponent(D.id);
     var msg = L(f, 'template').replace(/\{(\w+)\}/g, function (_, k) {
       return has(vals[k]) ? vals[k] : T('(tidak diisi)', '(not filled)');
     });
