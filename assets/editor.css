@@ -191,8 +191,8 @@
 
 /* ---------- pesan singkat ---------- */
 .ed-toast{
-  position:absolute;left:50%;bottom:96px;transform:translateX(-50%);
-  z-index:95;max-width:88%;
+  position:fixed;left:50%;bottom:150px;transform:translateX(-50%);
+  z-index:130;max-width:min(88%,420px);display:flex;align-items:center;gap:12px;
   background:var(--ink);color:var(--cream);
   font-size:12.5px;line-height:1.5;padding:11px 15px;
   animation:edtoast .4s var(--ed-ease) both;
@@ -218,29 +218,8 @@
 .ed-fab:active{transform:scale(.92)}
 .ed-fab.on:active{transform:rotate(45deg) scale(.92)}
 .app.dark .ed-fab{background:var(--cream);color:var(--ink)}
-.ed-menu{
-  position:absolute;right:16px;bottom:calc(100% + 80px);z-index:31;
-  min-width:210px;padding:6px;border-radius:16px;color:var(--ink);
-  background:rgba(255,255,255,.86);
-  -webkit-backdrop-filter:saturate(180%) blur(22px);backdrop-filter:saturate(180%) blur(22px);
-  box-shadow:0 18px 44px rgba(0,0,0,.22);
-  transform-origin:bottom right;animation:edpop .36s cubic-bezier(.34,1.3,.64,1) both;
-}
-@keyframes edpop{from{opacity:0;transform:scale(.9) translateY(6px)}to{opacity:1;transform:none}}
-.ed-menu.out{animation:edpopout .18s ease both;pointer-events:none}
-@keyframes edpopout{from{opacity:1;transform:none}to{opacity:0;transform:scale(.92) translateY(4px)}}
-.ed-menu button{
-  display:flex;align-items:center;gap:12px;width:100%;padding:12px;border:none;border-radius:10px;
-  background:none;color:var(--ink);font-family:var(--b);font-size:16px;letter-spacing:-.02em;
-  text-align:left;cursor:pointer;
-}
-.ed-menu button:hover{background:rgba(0,0,0,.05)}
-.ed-menu svg{width:20px;height:20px;flex:none}
 
-/* ---------- blok tambahan ---------- */
-/* blok besar tidak digoyang dan tidak mengunci scroll, pegangannya bulatan kiri atas */
-.app.editing .blocks > .blk{touch-action:auto;animation:none}
-.app.editing .blocks > .blk:empty{min-height:40px;border:1px dashed var(--line-s);border-radius:var(--r-s)}
+/* ---------- pegangan bulat untuk baris tabel ---------- */
 .ed-grip-h{
   position:absolute;top:-9px;left:-9px;width:24px;height:24px;z-index:6;border-radius:50%;
   background:
@@ -254,8 +233,6 @@
 }
 @media (prefers-reduced-motion: reduce){ .ed-grip-h{animation:none} }
 .ed-img-btn{display:block;margin:12px auto 0}
-/* pegangan jangan menutupi huruf pertama blok teks */
-.app.editing .blk-text .p{padding-left:22px}
 
 /* lembar editor ikut dikunci selebar isi kartu di layar lebar */
 @media(min-width:560px){
@@ -280,8 +257,8 @@
 /* kurva lembar iOS: cepat di awal, berhenti pelan tanpa memantul */
 :root{--ed-ease:cubic-bezier(.32,.72,0,1)}
 /* tombol mengecil sedikit saat ditekan, seperti tombol iOS */
-.ed-btn,.ed-add,.ed-menu button,.ed-fmt button,.ed-eye{transition:transform .2s var(--ed-ease),background .2s ease,border-color .2s ease}
-.ed-btn:active,.ed-add:active,.ed-menu button:active,.ed-fmt button:active,.ed-eye:active{transform:scale(.96)}
+.ed-btn,.ed-add,.ed-fmt button,.ed-eye,.ed-wb,.ed-pk button{transition:transform .2s var(--ed-ease),background .2s ease,border-color .2s ease}
+.ed-btn:active,.ed-add:active,.ed-fmt button:active,.ed-eye:active,.ed-wb:active,.ed-pk button:active{transform:scale(.96)}
 /* render ulang di step yang sama saat menyunting: jangan putar ulang animasi masuk */
 .app.calm .step,
 .app.calm .tflat .tier-lvl,
@@ -303,3 +280,177 @@
 .app.editing [data-hide] > .meta-v{transition:opacity .35s var(--ed-ease)}
 .app.editing .ed-off > .meta-k,
 .app.editing .ed-off > .meta-v{opacity:.35}
+
+/* ================= widget ================= */
+/* Pembungkus widget hanya ada saat menyunting. Tanpa padding atau border, jadi margin
+   isinya tetap menyambung seperti di tampilan biasa. Sorotan memakai box-shadow
+   supaya tidak menggeser layout. */
+:root{--ed-acc:#0071E3}
+.app.editing .w{position:relative;border-radius:14px;transition:box-shadow .2s ease;cursor:pointer}
+.app.editing .w:hover{box-shadow:0 0 0 1px rgba(0,113,227,.32)}
+.app.editing .w.sel{box-shadow:0 0 0 2px var(--ed-acc);z-index:3}
+.app.editing .w.sel::before{
+  content:attr(data-label);position:absolute;left:8px;top:-24px;z-index:7;
+  font-family:var(--b);font-size:10.5px;font-weight:600;letter-spacing:.02em;line-height:1;
+  padding:5px 8px;border-radius:7px;background:var(--ed-acc);color:#fff;pointer-events:none;
+}
+.app.editing .w-off{opacity:.38}
+.app.editing .w-blank{min-height:46px;margin-top:14px;border:1px dashed rgba(0,0,0,.18)}
+.app.editing .w-blank::after{
+  content:attr(data-label);position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:12px;color:var(--mu);pointer-events:none;
+}
+.app.editing .w[data-wt="space"]{background:repeating-linear-gradient(135deg,rgba(0,113,227,.06) 0 6px,transparent 6px 12px)}
+.w-empty{
+  margin-top:10px;padding:34px 20px;border:1.5px dashed rgba(0,0,0,.18);border-radius:var(--r);
+  text-align:center;font-size:14px;line-height:1.5;color:var(--mu);
+}
+.w-ph{
+  margin-top:22px;min-height:140px;display:flex;align-items:center;justify-content:center;
+  border:1.5px dashed rgba(0,0,0,.2);border-radius:var(--r);font-size:14px;color:var(--mu);background:var(--tint);
+}
+.qrbox.w-ph{min-height:0}
+.dark .w-empty,.dark .w-ph{border-color:rgba(255,255,255,.22);color:var(--cream-mu);background:transparent}
+
+/* pegangan geser widget, pojok kanan atas widget yang dipilih */
+.ed-wgrip{
+  position:absolute;top:-28px;right:8px;z-index:8;width:30px;height:24px;border-radius:8px;
+  background:var(--ed-acc);color:#fff;display:flex;align-items:center;justify-content:center;
+  touch-action:none;cursor:grab;box-shadow:0 2px 8px rgba(0,113,227,.35);
+}
+.ed-wgrip svg{width:16px;height:16px;stroke-width:3}
+
+/* pegangan ubah ukuran gambar */
+.ed-rs{
+  position:absolute;right:-9px;bottom:-9px;z-index:8;width:26px;height:26px;border-radius:50%;
+  background:#fff;border:2px solid var(--ed-acc);box-shadow:0 2px 8px rgba(0,0,0,.2);
+  cursor:nwse-resize;touch-action:none;
+}
+.ed-rs.l{right:auto;left:-9px;cursor:nesw-resize}
+.ed-rs::after{content:"";position:absolute;inset:7px;border-right:2px solid var(--ed-acc);border-bottom:2px solid var(--ed-acc);border-radius:1px}
+.ed-rs.l::after{border-right:none;border-left:2px solid var(--ed-acc)}
+.ed-rs-v{
+  position:absolute;bottom:32px;right:0;padding:4px 7px;border-radius:7px;background:var(--ed-acc);color:#fff;
+  font-size:11px;font-weight:600;white-space:nowrap;opacity:0;transition:opacity .15s;pointer-events:none;
+}
+.ed-rs.l .ed-rs-v{right:auto;left:0}
+.ed-rs.on .ed-rs-v{opacity:1}
+
+/* baris tabel dan item accordion tidak digoyang, digeser lewat pegangan */
+.app.editing .meta[data-arr] > .meta-row,
+.app.editing .acc[data-arr] > .acc-i{animation:none;touch-action:auto}
+.app.editing .meta[data-arr] > .bs-photos{animation:none;touch-action:pan-x}
+.app.editing .meta[data-arr] > .meta-row > .ed-grip-h{top:13px;left:-29px}
+.app.editing .meta[data-arr] > .ed-add{display:block;margin:4px 0 12px}
+.app.editing .acc[data-arr] > .ed-add{align-self:flex-start}
+.app.editing .acc-l[data-badge]{cursor:pointer}
+.ed-more{display:flex;gap:8px;margin-top:14px}
+.ed-more button{
+  font-family:var(--b);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  border:1px dashed var(--gold-soft);background:none;color:var(--gold-d);padding:6px 11px;cursor:pointer;border-radius:8px;
+}
+
+/* ================= strip bawah: aksi widget ================= */
+.ed-wrow{display:flex;gap:4px}
+.ed-wb{
+  flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:7px 2px 6px;border:none;border-radius:10px;background:rgba(255,255,255,.08);
+  color:var(--cream);font-family:var(--b);font-size:9.5px;letter-spacing:.02em;cursor:pointer;
+}
+.ed-wb svg{width:19px;height:19px}
+.ed-wb span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.ed-wb:disabled{opacity:.28;cursor:default}
+.ed-wb[data-a="w-set"]{background:var(--ed-acc)}
+.ed-wb[data-a="w-del"]{color:#FF8A80}
+.ed-cur b{color:var(--cream);font-weight:600}
+.ed-undo{flex:none;width:44px;padding:0;display:flex;align-items:center;justify-content:center}
+.ed-undo svg{width:18px;height:18px}
+.ed-undo:disabled{opacity:.3;cursor:default}
+
+/* ================= menu Tambah widget ================= */
+.ed-pk-g{margin:16px 0 8px;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--dm)}
+.ed-pk{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.ed-pk button{
+  display:grid;grid-template-columns:24px 1fr;column-gap:10px;row-gap:2px;align-items:center;text-align:left;
+  padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--tint);color:var(--ink);
+  font-family:var(--b);cursor:pointer;
+}
+.ed-pk button svg{grid-row:span 2;width:22px;height:22px}
+.ed-pk button b{font-size:14px;font-weight:600;letter-spacing:-.01em}
+.ed-pk button span{font-size:11.5px;line-height:1.35;color:var(--mu)}
+.ed-pk button:hover{border-color:var(--ed-acc)}
+.ed-pk button:disabled{opacity:.4;cursor:default}
+
+/* ================= panel Atur ================= */
+.ed-panel{
+  position:fixed;left:0;right:0;bottom:0;z-index:110;max-height:56vh;display:flex;flex-direction:column;
+  background:var(--paper);color:var(--ink);font-family:var(--b);
+  border-radius:18px 18px 0 0;box-shadow:0 -12px 40px rgba(0,0,0,.18);
+  animation:edsheet .42s var(--ed-ease) both;
+}
+.ed-ph{display:flex;align-items:center;gap:10px;padding:14px 16px 12px;border-bottom:1px solid var(--line)}
+.ed-ph b{flex:1;font-size:16px;font-weight:600;letter-spacing:-.01em}
+.ed-pi svg{width:22px;height:22px;display:block;color:var(--ed-acc)}
+.ed-px{width:34px;height:34px;border:none;border-radius:50%;background:var(--tint);color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.ed-px svg{width:16px;height:16px}
+.ed-pbody{overflow-y:auto;padding:14px 16px calc(18px + env(safe-area-inset-bottom))}
+.ed-pbody .ed-sub{margin-bottom:12px}
+/* di HP panel menutup separuh bawah: kartu diberi ruang supaya widget bawah bisa digulir ke atasnya */
+body.ed-panel-on .app.editing .stage{padding-bottom:56vh}
+@keyframes edside{from{transform:translateX(100%)}to{transform:none}}
+@media(min-width:900px){
+  .ed-panel{
+    left:auto;top:0;width:360px;max-height:none;border-radius:0;
+    box-shadow:-12px 0 40px rgba(0,0,0,.12);animation:edside .38s var(--ed-ease) both;
+  }
+  body.ed-panel-on .app.editing{padding-right:360px}
+  body.ed-panel-on .app.editing .stage{padding-bottom:0}
+}
+
+/* kontrol di panel dan lembar */
+.ed-f{margin-top:14px}
+.ed-fl{display:block;margin-bottom:7px;font-size:12px;font-weight:600;letter-spacing:.02em;color:var(--mu)}
+.ed-seg{display:flex;gap:4px;padding:3px;border-radius:11px;background:var(--tint);border:1px solid var(--line)}
+.ed-seg button{
+  flex:1;padding:8px 6px;border:none;border-radius:8px;background:none;color:var(--ink);
+  font-family:var(--b);font-size:13px;cursor:pointer;
+}
+.ed-seg button.on{background:var(--paper);box-shadow:0 1px 4px rgba(0,0,0,.14);font-weight:600}
+.ed-rng{display:flex;align-items:center;gap:12px}
+.ed-rng input{flex:1;accent-color:var(--ed-acc)}
+.ed-rng output{min-width:52px;text-align:right;font-size:13px;font-variant-numeric:tabular-nums;color:var(--mu)}
+.ed-sw{display:flex;align-items:center;gap:12px;cursor:pointer;font-size:14px;line-height:1.4;position:relative}
+.ed-sw input[type="checkbox"]{position:absolute;opacity:0;width:0;height:0}
+.ed-sw i{flex:none;position:relative;width:44px;height:26px;border-radius:99px;background:rgba(0,0,0,.16);transition:background .2s}
+.ed-sw i::after{content:"";position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .25s var(--ed-ease)}
+.ed-sw input:checked + i{background:#34C759}
+.ed-sw input:checked + i::after{transform:translateX(18px)}
+.ed-sw input:focus-visible + i{outline:2px solid var(--ed-acc);outline-offset:2px}
+.ed-clr input[type="color"]{width:44px;height:30px;padding:0;border:1px solid var(--line);border-radius:8px;background:none;cursor:pointer}
+select.ed-input{appearance:auto}
+.ed-icons{display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:6px;margin-top:12px}
+.ed-icons button{
+  height:44px;border:1px solid var(--line);border-radius:10px;background:var(--tint);color:var(--ink);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+}
+.ed-icons button svg{width:21px;height:21px}
+.ed-icons button.on{border-color:var(--ed-acc);box-shadow:0 0 0 1px var(--ed-acc);color:var(--ed-acc)}
+.ed-tile-ic{flex:none;width:22px;height:22px;display:flex;align-items:center;justify-content:center}
+.ed-tile-ic svg{width:20px;height:20px}
+.ed-tile-ic img{max-width:22px;max-height:16px;object-fit:contain}
+
+/* toast dengan tombol Urungkan */
+.ed-toast-a{
+  flex:none;border:none;background:rgba(255,255,255,.16);color:#fff;font-family:var(--b);
+  font-size:12px;font-weight:600;padding:6px 10px;border-radius:7px;cursor:pointer;
+}
+
+/* toolbar teks: ikon dan kolom link */
+.ed-fmt button svg{width:16px;height:16px;display:block}
+.ed-fmt button{display:flex;align-items:center;justify-content:center}
+.ed-fmt-link{display:flex;gap:6px;align-items:center}
+.ed-fmt-link input{
+  width:min(220px,52vw);height:32px;padding:0 10px;border:none;border-radius:8px;
+  font-family:var(--b);font-size:14px;background:#fff;color:#111;
+}
+.ed-fmt-link input.bad{box-shadow:0 0 0 2px #FF3B30}

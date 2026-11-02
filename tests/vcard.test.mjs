@@ -5,8 +5,11 @@ import handler from '../api/vcard.js';
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
 
 // server palsu: /<card>/<berkas> dibaca dari folder lokal
+// kartu "v2-test": data.js asli yang dikonversi ke format widget, dibuat di bawah
+const V2 = {};
 globalThis.fetch = async (url) => {
   const p = new URL(url).pathname.slice(1);
+  if (V2[p]) return { ok: true, text: async () => V2[p], arrayBuffer: async () => Buffer.from(V2[p]) };
   try {
     const buf = readFileSync(ROOT + p);
     return { ok: true, text: async () => buf.toString('utf8'), arrayBuffer: async () => buf };
@@ -40,6 +43,23 @@ check('dua alamat kantor', (txt.match(/^ADR;/gm) || []).length === 2);
 check('koma di alamat di-escape', txt.includes('Jl. TB. Simatupang No. 5\\, Ragunan'));
 check('foto tertanam', /PHOTO;ENCODING=b;TYPE=JPEG:\/9j\//.test(txt));
 check('baris dilipat maks 75', r.body.split('\r\n').every((l) => l.length <= 75));
+
+// ---- format widget: alamat dibaca dari widget tabel, bukan biosheet
+{
+  const { JSDOM } = await import('jsdom');
+  const dom = new JSDOM('<div id="app"></div>', { runScripts: 'outside-only', url: 'https://x.test/stephen-bni/' });
+  dom.window.HTMLMediaElement.prototype.play = () => Promise.resolve();
+  dom.window.Element.prototype.scrollTo = () => {};
+  dom.window.eval(readFileSync(ROOT + 'stephen-bni/data.js', 'utf8'));
+  dom.window.eval(readFileSync(ROOT + 'assets/app.js', 'utf8'));
+  const d = dom.window.BioCard.data();
+  V2['v2-test/data.js'] = 'var DATA = ' + JSON.stringify(d) + ';';
+  check('data terkonversi tanpa biosheet', Array.isArray(d.pages) && !d.biosheet);
+  const r2 = await call({ card: 'v2-test', u: '' });
+  const t2 = r2.body.replace(/\r\n /g, '');
+  check('format widget: tetap dua alamat kantor', (t2.match(/^ADR;/gm) || []).length === 2, String((t2.match(/^ADR;/gm) || []).length));
+  check('format widget: nama dan email tetap', t2.includes('FN:Stephen Septian') && t2.includes('stephen@increasink.co.id'));
+}
 
 const bad = await call({ card: '../etc', u: '' });
 check('card aneh ditolak', bad.code === 400);

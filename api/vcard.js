@@ -57,7 +57,10 @@ export default async function handler(req, res) {
 
   // alamat kantor dari baris Location di Bio Sheet: kalau ada baris kosong, tiap blok = satu alamat
   // (baris di dalam blok digabung pakai koma); kalau tidak ada, satu alamat per baris
-  const rows = ((D.biosheet || {}).groups || []).flatMap((g) => g.rows || []);
+  // kartu versi 2: baris ada di widget tabel; versi lama: di biosheet.groups
+  const rows = Array.isArray(D.pages)
+    ? D.pages.flatMap((p) => (p && p.widgets) || []).filter((w) => w && w.type === 'table' && !w.hidden).flatMap((w) => w.rows || [])
+    : ((D.biosheet || {}).groups || []).flatMap((g) => g.rows || []);
   const loc = rows.find((r) => r.label_en === 'Location' && !r.hidden);
   const raw = String((loc && (loc.value_en || loc.value_id)) || '');
   (/\n\s*\n/.test(raw) ? raw.split(/\n\s*\n/) : raw.split('\n'))

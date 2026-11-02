@@ -22,12 +22,15 @@ w.IntersectionObserver = class {
   constructor(cb) { this.cb = cb; observers.push(this); }
   observe(el) { this.el = el; }
   disconnect() { this.el = null; }
+  unobserve() {}
   trigger() { this.cb([{ isIntersecting: true, target: this.el }]); }
 };
 w.eval(read('stephen-bni/data.js'));
 w.eval(read('assets/app.js'));
 
 const BC = w.BioCard;
+// widget pertama berjenis type di halaman key (format data versi 2)
+const widget = (key, type) => w.DATA.pages.find((p) => p.key === key).widgets.find((x) => x.type === type);
 const steps = BC.steps().map((s) => s.key);
 const fail = [];
 const ok = [];
@@ -105,11 +108,12 @@ klik('#vsound');
 // ---- My Ministry: carousel kosong tidak tampil, yang berisi tampil di antara judul dan chip
 BC.go(steps.indexOf('personal'));
 check('ministry berisi 2 foto sementara', w.document.querySelectorAll('.mincar .car-slide img').length === 2);
-const keepMin = w.DATA.ministry.slides;
-w.DATA.ministry.slides = [];
+const minW = widget('personal', 'carousel');
+const keepMin = minW.slides;
+minW.slides = [];
 BC.go(steps.indexOf('personal'));
 check('ministry tanpa slide: tidak ada carousel', !w.document.querySelector('.mincar'));
-w.DATA.ministry.slides = [{ type: 'image', src: 'img/slide2.webp' }, { type: 'video', src: 'img/slide4.mp4' }];
+minW.slides = [{ type: 'image', src: 'img/slide2.webp' }, { type: 'video', src: 'img/slide4.mp4' }];
 BC.go(steps.indexOf('personal'));
 const mc = w.document.querySelector('.mincar');
 check('ministry dengan slide: carousel tampil', !!mc && mc.querySelectorAll('.car-slide').length === 2);
@@ -118,7 +122,7 @@ check('carousel ministry di antara judul dan chip',
   mc && (mc.previousElementSibling.className + ' / ' + mc.nextElementSibling.className));
 check('carousel ministry mulai dari slide pertama', mc && mc.querySelector('.car-dots i').classList.contains('on'));
 check('video ministry tidak dibungkam', mc && !mc.querySelector('video').dataset.mute);
-w.DATA.ministry.slides = keepMin;
+minW.slides = keepMin;
 
 // ---- petunjuk QR BNI Connect: bagian ketuk ditebalkan
 BC.go(steps.indexOf('bni'));
@@ -150,7 +154,7 @@ check('Kembali menutup lembar', !igm.classList.contains('show') && !igm.querySel
 
 // ---- Top Ten Customers di step Referral, sebelum dan sesudah memilih tier
 BC.go(steps.indexOf('refer'));
-const t10 = () => [...w.document.querySelectorAll('[data-arr="top10.items"] .fact-n')].map((n) => n.textContent).join('');
+const t10 = () => [...[...w.document.querySelectorAll('.step .facts')].pop().querySelectorAll('.fact-n')].map((n) => n.textContent).join('');
 check('Top Ten Customers A-D di Referral', t10() === 'ABCD', t10());
 klik('#tiernav [data-tier="0"]');
 check('Top Ten tetap ada setelah pilih tier', t10() === 'ABCD', t10());

@@ -5,11 +5,8 @@
   var D = window.DATA || {};
   var lang = D.lang_default || 'id';
   var step = 0;      // indeks step aktif
-  var open = {};     // pilar GAINS yang sedang terbuka, dikunci per key
   var tier = -1;     // indeks tier di step How to Refer Me, -1 berarti belum dipilih
 
-  var PILL_ALL = ['goal', 'accomplishment', 'interest', 'network', 'skill'];
-  var PILLARS = PILL_ALL.slice();
 
   /* ---------- helpers ---------- */
   function esc(s) {
@@ -29,6 +26,56 @@
     return path ? ' data-e="' + esc(path) + '"' + (rich ? ' data-rich="1"' : '') : '';
   }
   function lp(prefix, base) { return prefix + '.' + base + '_' + lang; }
+  function clamp(v, a, b) { v = +v; return isNaN(v) ? a : Math.min(b, Math.max(a, v)); }
+  function pget(path) {
+    var a = String(path).split('.'), v = D;
+    for (var i = 0; i < a.length && v != null; i++) v = v[a[i]];
+    return v;
+  }
+  /* Link dari isian editor: http(s), mailto, tel. Tanpa skema dianggap alamat web. */
+  function safeUrl(u) {
+    u = String(u || '').trim();
+    if (/^(https?:|mailto:|tel:)/i.test(u)) return u;
+    if (/^[\w-]+(\.[\w-]+)+([/?#].*)?$/.test(u)) return 'https://' + u;
+    return '#';
+  }
+
+  /* Teks kaya dari editor (bold, italic, underline, link) disaring sebelum ditampilkan.
+     Tag lain dilepas tapi teksnya dipertahankan, atribut dibuang kecuali href yang aman. */
+  var RICH_OK = { B: 1, STRONG: 1, I: 1, EM: 1, U: 1, A: 1, BR: 1 };
+  var RICH_DROP = /^(SCRIPT|STYLE|IFRAME|OBJECT|EMBED|TEMPLATE|svg|math)$/i;
+  function cleanNode(node) {
+    Array.prototype.slice.call(node.childNodes).forEach(function (c) {
+      if (c.nodeType === 3) return;
+      if (c.nodeType !== 1 || !RICH_OK[c.tagName]) {
+        if (c.nodeType === 1 && !RICH_DROP.test(c.tagName)) {
+          cleanNode(c);
+          while (c.firstChild) node.insertBefore(c.firstChild, c);
+        }
+        node.removeChild(c);
+        return;
+      }
+      Array.prototype.slice.call(c.attributes).forEach(function (at) {
+        if (!(c.tagName === 'A' && at.name === 'href')) c.removeAttribute(at.name);
+      });
+      if (c.tagName === 'A') {
+        var h = String(c.getAttribute('href') || '').trim();
+        if (!/^(https?:|mailto:|tel:)/i.test(h)) c.removeAttribute('href');
+        else if (!editing()) { c.setAttribute('target', '_blank'); c.setAttribute('rel', 'noopener'); }
+      }
+      cleanNode(c);
+    });
+  }
+  function rich(html) {
+    html = String(html == null ? '' : html);
+    if (!/[<&]/.test(html)) return html;
+    var t = document.createElement('template');
+    t.innerHTML = html;
+    cleanNode(t.content);
+    var d = document.createElement('div');
+    d.appendChild(t.content);
+    return d.innerHTML;
+  }
 
   var ICON = {
     mail: '<path d="M2 5h20v14H2z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="m2 6 10 7 10-7" fill="none" stroke="currentColor" stroke-width="1.6"/>',
@@ -50,11 +97,26 @@
   ICON.close = '<path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>';
   ICON.soundOff = '<path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="m16 9.5 5 5M21 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>';
   ICON.soundOn = '<path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16.5 8.8a4.6 4.6 0 0 1 0 6.4M19 6.3a8.2 8.2 0 0 1 0 11.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>';
-  function svg(n, c) { return '<svg class="' + (c || '') + '" viewBox="0 0 24 24" aria-hidden="true">' + ICON[n] + '</svg>'; }
-  /* Step BNI memakai logo aslinya. Abu saat diam, warna penuh saat aktif, diatur di CSS. */
+  /* Ikon tambahan untuk tab halaman dan kotak accordion, dipilih dari editor. */
+  function stroke(d, extra) {
+    return '<path d="' + d + '" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>' + (extra || '');
+  }
+  ICON.star = stroke('m12 3.6 2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z');
+  ICON.check = stroke('m5 12.6 4.4 4.4L19 7.4');
+  ICON.target = stroke('M12 3.5a8.5 8.5 0 1 0 0 17 8.5 8.5 0 0 0 0-17zM12 7.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9z', '<circle cx="12" cy="12" r="1.3" fill="currentColor"/>');
+  ICON.trophy = stroke('M7.5 4h9v5a4.5 4.5 0 0 1-9 0zM7.5 6h-3a3 3 0 0 0 3 4M16.5 6h3a3 3 0 0 1-3 4M12 13.5V17M8.5 20.5h7M9.5 17h5v3.5h-5z');
+  ICON.bulb = stroke('M9.2 18h5.6M10.2 21h3.6M12 3a6 6 0 0 0-3.6 10.8c.7.6 1.1 1.4 1.1 2.2h5c0-.8.4-1.6 1.1-2.2A6 6 0 0 0 12 3z');
+  ICON.briefcase = stroke('M3.5 7.5h17v12h-17zM8.5 7.5V5.6c0-.9.7-1.6 1.6-1.6h3.8c.9 0 1.6.7 1.6 1.6v1.9M3.5 12.5h17');
+  ICON.camera = stroke('M4 8h3.2L9 5.5h6L16.8 8H20v11H4zM12 10a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z');
+  ICON.pin = stroke('M12 21s-6.5-6.1-6.5-11a6.5 6.5 0 0 1 13 0c0 4.9-6.5 11-6.5 11zM12 7.6a2.4 2.4 0 1 0 0 4.8 2.4 2.4 0 0 0 0-4.8z');
+  ICON.calendar = stroke('M4 5.5h16v14.5H4zM4 10h16M8.5 3.5v4M15.5 3.5v4');
+  ICON.music = stroke('M9 18V6.2l10-2.2v12M9 18a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0zM19 16a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z');
+  ICON.cross = stroke('M12 3v18M7 8.5h10');
+  ICON.rocket = stroke('M14.5 4.5c2.5-1 4.5-1 5-1-.1 1-.5 3-1.5 5.1-1.2 2.4-3.3 4.6-6 6.4l-2.9-2.9c1.8-2.7 4-4.8 5.4-5.6M9.1 12.1 6 12.3l-2 2.2 3.4.7M11.9 14.9l-.2 3.1-2.2 2-.7-3.4M15.5 7.4a1.1 1.1 0 1 0 0 2.2 1.1 1.1 0 0 0 0-2.2z');
+  function svg(n, c) { return '<svg class="' + (c || '') + '" viewBox="0 0 24 24" aria-hidden="true">' + (ICON[n] || ICON.star) + '</svg>'; }
+  /* Tab boleh memakai gambar (logo BNI) sebagai ganti ikon. Abu saat diam, warna penuh saat aktif. */
   function tabIcon(x) {
-    var logo = (D.images || {}).bni;
-    if (x.key === 'bni' && has(logo)) return '<img class="tabimg" src="' + esc(logo) + '" alt="" aria-hidden="true">';
+    if (has(x.img)) return '<img class="tabimg" src="' + esc(x.img) + '" alt="" aria-hidden="true">';
     return svg(x.icon);
   }
   function h2(title, path) {
@@ -70,54 +132,23 @@
       }).join('') + '</div>';
   }
 
-  /* Blok tambahan dari tombol + di editor: kolom info, teks, gambar.
-     Tampil di akhir step, atau di titik <!--blocks--> kalau view menyediakannya.
-     Saat menyunting semua blok selalu digambar supaya urutan DOM sama dengan indeks data. */
-  function blocksHtml(key) {
-    var list = (D.blocks || {})[key];
-    list = Array.isArray(list) ? list : [];
-    var on = editing();
-    if (!list.length && !on) return '';
-    var p = 'blocks.' + key;
-    var html = list.map(function (b, i) {
-      var bp = p + '.' + i;
-      b = b || {};
-      if (b.type === 'row') {
-        if (!on && !has(L(b, 'label')) && !has(L(b, 'value'))) return '';
-        return '<div class="blk blk-row meta"><div class="meta-row">' +
-          '<div class="meta-k"' + ed(lp(bp, 'label')) + '>' + esc(L(b, 'label')) + '</div>' +
-          '<div class="meta-v"' + ed(lp(bp, 'value')) + '>' + esc(L(b, 'value')) + '</div></div></div>';
-      }
-      if (b.type === 'text') {
-        if (!on && !has(L(b, 'body'))) return '';
-        return '<div class="blk blk-text"><p class="p"' + ed(lp(bp, 'body')) + '>' + esc(L(b, 'body')) + '</p></div>';
-      }
-      if (b.type === 'image' && has(b.src)) {
-        var cap = L(b, 'caption');
-        return '<figure class="blk blk-img"><img src="' + esc(b.src) + '" alt="' + esc(cap) + '" loading="lazy" data-img="' + bp + '.src">' +
-          (has(cap) || on ? '<figcaption class="blk-cap"' + ed(lp(bp, 'caption')) + '>' + esc(cap) + '</figcaption>' : '') +
-          '</figure>';
-      }
-      return on ? '<div class="blk"></div>' : '';
-    }).join('');
-    if (!html && !on) return '';
-    return '<div class="blocks"' + (on ? ' data-arr="' + p + '" data-kind="block"' : '') + '>' + html + '</div>';
-  }
-
-  /* ---------- step definitions ---------- */
-  var STEP_DEF = {
-    intro:    { dark: false, icon: 'person', tab: ['Kenalan', 'About'],     label: ['Perkenalan', 'Introduction'] },
-    bni:      { dark: false, icon: 'badge',  tab: ['BNI', 'BNI'],           label: ['Keanggotaan BNI', 'BNI Membership'] },
-    gains:    { dark: false, icon: 'gains',  tab: ['GAINS', 'GAINS'],       label: ['Bio GAINS', 'Bio GAINS'] },
-    personal: { dark: false, icon: 'heart',  tab: ['Personal', 'Personal'], label: ['Di Luar Pekerjaan', 'Beyond Work'] },
-    refer:    { dark: false, icon: 'hand',   tab: ['Referral', 'Refer'],    label: ['Cara Mereferensikan', 'How to Refer'] },
-    connect:  { dark: true,  icon: 'chat',   tab: ['Kontak', 'Contact'],    label: ['Kontak', 'Contact'] }
+  /* ---------- data versi 2: halaman berisi widget ----------
+     Dulu setiap section punya renderer dan kunci data sendiri (gains, biosheet, refer, ...),
+     jadi editor hanya bisa mengubah teksnya. Sekarang setiap step adalah halaman berisi
+     daftar widget, sehingga seluruh kartu bisa disusun ulang dari editor. Data lama
+     dikonversi otomatis saat dimuat, dan baru tertulis dalam bentuk baru saat Publish. */
+  var OLD_DEF = {
+    intro:    { icon: 'person', tab: ['Kenalan', 'About'],     label: ['Perkenalan', 'Introduction'] },
+    bni:      { icon: 'badge',  tab: ['BNI', 'BNI'],           label: ['Keanggotaan BNI', 'BNI Membership'] },
+    gains:    { icon: 'gains',  tab: ['GAINS', 'GAINS'],       label: ['Bio GAINS', 'Bio GAINS'] },
+    personal: { icon: 'heart',  tab: ['Personal', 'Personal'], label: ['Di Luar Pekerjaan', 'Beyond Work'] },
+    refer:    { icon: 'hand',   tab: ['Referral', 'Refer'],    label: ['Cara Mereferensikan', 'How to Refer'] },
+    connect:  { icon: 'chat',   tab: ['Kontak', 'Contact'],    label: ['Kontak', 'Contact'], dark: true }
   };
-  var STEP_ALL = ['intro', 'bni', 'gains', 'personal', 'refer', 'connect'];
-  var STEPS = [];
+  var OLD_ALL = ['intro', 'bni', 'gains', 'personal', 'refer', 'connect'];
+  var OLD_PILLARS = ['goal', 'accomplishment', 'interest', 'network', 'skill'];
 
-  /* Urutan tersimpan di data.order. Key yang belum tercatat di sana ikut di
-     belakang, jadi menambah section baru di engine tidak memecahkan kartu lama. */
+  /* Urutan tersimpan lama. Key yang belum tercatat ikut di belakang. */
   function resolveOrder(saved, all) {
     var out = [];
     (saved || []).forEach(function (k) {
@@ -126,69 +157,188 @@
     all.forEach(function (k) { if (out.indexOf(k) < 0) out.push(k); });
     return out;
   }
-  function buildSteps() {
-    var o = D.order || {}, hidden = o.hidden || [];
-    STEPS = [{ key: 'cover', dark: false }];
-    resolveOrder(o.steps, STEP_ALL).forEach(function (k) {
-      var off = hidden.indexOf(k) >= 0;
-      if (off && !editing()) return;
-      var d = STEP_DEF[k];
-      STEPS.push({ key: k, dark: d.dark, icon: d.icon, tab: d.tab, label: d.label, off: off });
+  function copy(o) { return JSON.parse(JSON.stringify(o)); }
+
+  function migrate(d) {
+    if (!d || Array.isArray(d.pages)) return d;
+    var o = d.order || {}, hidden = o.hidden || [], blocks = d.blocks || {};
+    var hero = d.hero || (d.hero = {}), bni = d.bni || {}, biz = d.bisnis || {}, imgs = d.images || {};
+    var pages = resolveOrder(o.steps, OLD_ALL).map(function (k) {
+      var n = 0, a = [];
+      function add(type, props) {
+        var w = { id: k + '-' + (++n), type: type };
+        Object.keys(props || {}).forEach(function (x) { w[x] = props[x]; });
+        a.push(w);
+      }
+      function head(id, en) { add('heading', { text_id: id || '', text_en: en || '' }); }
+      function row(lid, len, vid, ven) { return { label_id: lid, label_en: len, value_id: vid || '', value_en: ven || '' }; }
+      /* blok tambahan lama (kolom info, teks polos, gambar) jadi widget biasa */
+      function oldBlocks() {
+        (Array.isArray(blocks[k]) ? blocks[k] : []).forEach(function (b) {
+          if (!b) return;
+          if (b.type === 'row') add('table', { rows: [row(b.label_id || '', b.label_en || '', b.value_id, b.value_en)] });
+          else if (b.type === 'text') add('text', { body_id: esc(b.body_id || ''), body_en: esc(b.body_en || '') });
+          else if (b.type === 'image' && has(b.src)) add('image', { src: b.src, caption_id: b.caption_id || '', caption_en: b.caption_en || '' });
+        });
+      }
+      if (k === 'intro') {
+        add('carousel', { slides: d.intro_slides || [], sound: 2, main: true });
+        add('profile');
+        add('text', { style: 'quote', body_id: hero.tagline_id || '', body_en: hero.tagline_en || '' });
+        if (d.ig_embed !== false) add('instagram');
+        oldBlocks();
+      } else if (k === 'bni') {
+        var bz = (biz.nama || '') + (has(biz.sejak) ? ' est. ' + biz.sejak : '');
+        head('Keanggotaan', 'Membership');
+        add('pins', { shared: true });
+        add('table', { rows: [
+          row('Chapter', 'Chapter', bni.chapter, bni.chapter),
+          row('Klasifikasi', 'Classification', bni.klasifikasi_id, bni.klasifikasi_en),
+          row('Peran', 'Role', bni.peran_id, bni.peran_en),
+          row('Anggota Sejak', 'Member Since', bni.since_id, bni.since_en),
+          row('Bisnis', 'Business', bz, bz)
+        ] });
+        oldBlocks();
+        add('chips', { items: bni.status || [] });
+        add('text', { body_id: biz.layanan_id || '', body_en: biz.layanan_en || '' });
+        if (bni.qr) add('qr', copy(bni.qr));
+      } else if (k === 'gains') {
+        var g = d.gains || {};
+        head('Profil GAINS', 'GAINS Profile');
+        add('accordion', { items: resolveOrder(o.pillars, OLD_PILLARS).filter(function (p) { return g[p]; }).map(function (p) {
+          var x = g[p], it = { k: p, badge: x.letter || p.charAt(0).toUpperCase(),
+            title_id: x.title_id || '', title_en: x.title_en || '', body_id: x.body_id || '', body_en: x.body_en || '' };
+          if (x.items) it.list = x.items;
+          if (x.chips) it.chips = x.chips;
+          return it;
+        }) });
+        oldBlocks();
+      } else if (k === 'personal') {
+        var m = d.ministry || {}, of = d.offrecord || {}, bs = d.biosheet;
+        head(m.title_id, m.title_en);
+        add('carousel', { slides: m.slides || [] });
+        add('chips', { items: m.chips || [] });
+        add('space', { h: 26 });
+        head(of.title_id, of.title_en);
+        add('facts', { items: of.facts || [] });
+        if (bs) {
+          add('space', { h: 26 });
+          head(bs.title_id, bs.title_en);
+          (bs.groups || []).forEach(function (gr) {
+            var t = { title_id: gr.title_id || '', title_en: gr.title_en || '', rows: gr.rows || [] };
+            if (gr.stack) t.stack = true;
+            if (gr.photos) t.photos = gr.photos;
+            add('table', t);
+          });
+        }
+        oldBlocks();
+      } else if (k === 'refer') {
+        var r = d.refer || {}, t10 = d.top10;
+        head(r.title_id, r.title_en);
+        add('text', { body_id: esc(r.intro_id || ''), body_en: esc(r.intro_en || '') });
+        add('tiers', { items: r.tiers || [] });
+        if (t10) {
+          add('space', { h: 26 });
+          head(t10.title_id, t10.title_en);
+          add('facts', { items: t10.items || [] });
+        }
+        oldBlocks();
+      } else if (k === 'connect') {
+        var foot = esc(hero.name || '') + ' &middot; ' + esc(biz.nama || '');
+        head("Let's Connect", "Let's Connect");
+        add('contact');
+        add('share');
+        if (d.showreel) add('showreel', copy(d.showreel));
+        if (has(imgs.logo)) add('image', { src: imgs.logo, style: 'logo', invert: true, alt: 'Increasink' });
+        add('text', { size: 'xs', body_id: foot, body_en: foot });
+        oldBlocks();
+      }
+      var def = OLD_DEF[k];
+      var pg = { key: k, icon: def.icon, tab_id: def.tab[0], tab_en: def.tab[1],
+        label_id: def.label[0], label_en: def.label[1] };
+      if (def.dark) pg.dark = true;
+      if (hidden.indexOf(k) >= 0) pg.hidden = true;
+      if (k === 'bni' && has(imgs.bni)) pg.tab_img = imgs.bni;
+      pg.widgets = a;
+      return pg;
     });
+    // baris di bawah jabatan di cover dulu meminjam bni.chapter, sekarang punya field sendiri
+    if (hero.meta == null && has(bni.chapter)) hero.meta = bni.chapter;
+    delete hero.tagline_id;
+    delete hero.tagline_en;
+    ['intro_slides', 'showreel', 'bni', 'bisnis', 'gains', 'ministry', 'refer', 'offrecord', 'top10',
+      'biosheet', 'order', 'blocks', 'ig_embed'].forEach(function (x) { delete d[x]; });
+    d.version = 2;
+    d.pages = pages;
+    return d;
   }
-  function buildPillars() {
-    PILLARS = resolveOrder((D.order || {}).pillars, PILL_ALL);
+
+  /* ---------- halaman ---------- */
+  var STEPS = [];
+  function buildSteps() {
+    STEPS = [{ key: 'cover', dark: false }];
+    (D.pages || []).forEach(function (p, i) {
+      if (!p || (p.hidden && !editing())) return;
+      STEPS.push({
+        key: p.key || 'p' + i, page: i, dark: !!p.dark, icon: p.icon || 'star', img: p.tab_img || '',
+        tab: [p.tab_id || p.tab_en || '', p.tab_en || p.tab_id || ''],
+        label: [p.label_id || p.tab_id || '', p.label_en || p.tab_en || ''],
+        off: !!p.hidden
+      });
+    });
   }
   var seen = { 1: true };
 
-  var view = {};
+  /* id tunggal (car, vsound, reel, share) dipasang di elemen pertama saja per render,
+     supaya dua widget sejenis di satu halaman tidak menghasilkan id kembar. */
+  var ONE = {};
+  function once(name) {
+    if (ONE[name]) return '';
+    ONE[name] = 1;
+    return ' id="' + name + '"';
+  }
 
-  /* Deretan pin BNI. Sumbernya satu array dipakai di dua tempat, cover dan step BNI,
-     dan keduanya tidak pernah dirender bersamaan karena satu step satu layar. */
-  function pinRow() {
-    var arr = Array.isArray(D.pins) ? D.pins : [];
+  /* Deretan pin. Pin cover memakai D.pins; widget pin boleh memakai pin yang sama
+     (shared) atau daftarnya sendiri. */
+  function pinRow(arr, path) {
+    arr = Array.isArray(arr) ? arr : [];
     if (!arr.length && !editing()) return '';
-    return '<div class="pins" data-arr="pins" data-kind="pin">' +
-      arr.map(function (p, i) {
+    return '<div class="pins" data-arr="' + esc(path) + '" data-kind="pin">' +
+      arr.map(function (p) {
         return '<span class="pin">' +
           '<img src="' + esc(p.src) + '" alt="' + esc(p.alt || '') + '" loading="lazy"></span>';
       }).join('') + '</div>';
   }
 
-  view.cover = function () {
+  function coverHtml() {
     var hero = D.hero || {}, img = (D.images || {}).cover || (D.images || {}).hero;
     var inner = has(img)
       ? '<img class="ring-img" src="' + esc(img) + '" alt="' + esc(hero.name) + '">'
       : '<span class="ring-ini">' + esc(hero.initials || '') + '</span>';
     return '<div class="cover">' +
       '<div class="ring" data-img="images.cover">' + inner + '</div>' +
-      pinRow() +
+      pinRow(D.pins, 'pins') +
       '<div class="cover-kicker"' + ed(lp('hero', 'connector')) + '>' + esc(L(hero, 'connector')) + '</div>' +
       '<h1 class="cover-name"' + ed('hero.name') + '>' + esc(hero.name || '') + '</h1>' +
       '<p class="cover-role"' + ed(lp('hero', 'role')) + '>' + esc(L(hero, 'role')) + '</p>' +
-      (has((D.bni || {}).chapter) || editing()
-        ? '<div class="cover-meta"' + ed('bni.chapter') + '>' + esc((D.bni || {}).chapter) + '</div>' : '') +
+      (has(hero.meta) || editing()
+        ? '<div class="cover-meta"' + ed('hero.meta') + '>' + esc(hero.meta) + '</div>' : '') +
       '</div>';
-  };
+  }
 
-  /* Carousel ala Instagram: video dan gambar dari data.intro_slides. Video mulai tanpa suara
-     karena browser HP menolak autoplay bersuara, tombol speaker menyalakan suara lewat ketukan.
-     Dipakai dua kali, di step Kenalan dan di dalam overlay Our Showreel, tapi tidak pernah
-     bersamaan karena satu step satu layar, jadi id "car" dan "vsound" tetap tunggal. */
-  /* list dan path dipakai carousel lain (My Ministry). Tanpa list, isinya slide Kenalan. */
-  function carouselHtml(extra, lead, list, path) {
+  /* Carousel ala Instagram. Video mulai tanpa suara karena browser HP menolak autoplay
+     bersuara, tombol speaker menyalakan suara lewat ketukan.
+     o = { cls, key, slides, path, sound, lead }. sound = jumlah slide pertama yang boleh
+     bersuara (kosong berarti semua). lead = video yang ditaruh paling depan (showreel). */
+  function carouselHtml(o) {
     var hero = D.hero || {};
-    var intro = !list;
-    var slides = (Array.isArray(intro ? D.intro_slides : list) ? (intro ? D.intro_slides : list) : [])
-      .filter(function (s) { return s && has(s.src); });
-    /* Hanya dua slide Kenalan pertama yang boleh bersuara, sisanya selalu senyap. Dihitung
-       sebelum video showreel ditaruh di depan, jadi di overlay yang bersuara klip 1 sampai 3. */
-    if (intro) slides = slides.map(function (s, i) { return i < SOUND_SLIDES ? s : { type: s.type, src: s.src, poster: s.poster, mute: true }; });
-    if (lead && has(lead.src)) slides = [lead].concat(slides);
+    var slides = (Array.isArray(o.slides) ? o.slides : []).filter(function (s) { return s && has(s.src); });
+    if (o.sound != null) slides = slides.map(function (s, i) { return i < o.sound ? s : { type: s.type, src: s.src, poster: s.poster, mute: true }; });
+    if (o.lead && has(o.lead.src)) slides = [o.lead].concat(slides);
     if (!slides.length) return '';
     var hasVid = slides.some(function (s) { return s.type === 'video'; });
-    return '<div class="portrait carousel' + (extra ? ' ' + extra : '') + '" id="car" data-car="' + esc(path || extra || 'intro') + '"' +
-        (path ? ' data-slides="' + esc(path) + '"' : '') + ' aria-roledescription="carousel">' +
+    return '<div class="portrait carousel' + (o.cls ? ' ' + o.cls : '') + '"' + once('car') + ' data-car="' + esc(o.key) + '"' +
+        (o.path && editing() ? ' data-slides="' + esc(o.path) + '"' : '') + ' aria-roledescription="carousel">' +
         '<div class="car-track">' + slides.map(function (s, i) {
           return '<div class="car-slide">' + (s.type === 'video'
             ? '<video class="car-media"' + (i === 0 ? ' src="' + esc(s.src) + '"' : '') +
@@ -200,7 +350,7 @@
         }).join('') + '</div>' +
         (slides.length > 1 ? '<div class="car-dots" aria-hidden="true">' +
           slides.map(function () { return '<i></i>'; }).join('') + '</div>' : '') +
-          (hasVid ? '<button class="vsound" id="vsound" aria-pressed="' + introSound + '" aria-label="' +
+          (hasVid ? '<button class="vsound"' + once('vsound') + ' aria-pressed="' + introSound + '" aria-label="' +
           (introSound ? T('Matikan suara', 'Mute') : T('Nyalakan suara', 'Unmute')) + '">' +
           svg(introSound ? 'soundOn' : 'soundOff') + '</button>' : '') +
         /* Di HP carousel digeser dengan jari. Di browser tidak ada yang bisa digeser,
@@ -214,9 +364,8 @@
   /* Grid Instagram resmi lewat /<user>/embed/. Bukan widget pihak ketiga, tapi juga bukan
      endpoint yang didokumentasikan Meta, jadi anggap bisa berubah sewaktu-waktu. Dimuat
      malas supaya tidak ikut mengunduh saat carousel baru dibuka. */
-  function igHtml() {
-    var ig = (D.contact || {}).ig;
-    if (!has(ig) || (D.ig_embed === false)) return '';
+  function igHtml(ig) {
+    if (!has(ig)) return '';
     return '<div class="igbox">' +
       '<div class="igbox-h">Instagram <b>@' + esc(ig) + '</b></div>' +
       '<iframe class="igframe" loading="lazy" scrolling="no" frameborder="0"' +
@@ -226,135 +375,84 @@
       T('Buka profil', 'Open profile') + ' &rsaquo;</a></div>';
   }
 
-  view.intro = function () {
-    var hero = D.hero || {}, img = (D.images || {}).hero;
-    var p = carouselHtml() ||
-      (has(img)
-        ? '<div class="portrait" data-img="images.hero" style="background-image:url(' + esc(img) + ')"></div>'
-        : '<div class="portrait" data-img="images.hero"><span class="portrait-ini">' + esc(hero.initials || '') + '</span></div>');
-    return '<div class="step">' +
-      p +
-      '<h2 class="name"' + ed('hero.name') + '>' + esc(hero.name || '') + '</h2>' +
-      '<p class="role"' + ed(lp('hero', 'role')) + '>' + esc(L(hero, 'role')) + '</p>' +
-      (has(L(hero, 'tagline')) || editing()
-        ? '<p class="quote"' + ed(lp('hero', 'tagline'), 1) + '>' + L(hero, 'tagline') + '</p>' : '') +
-      igHtml() +
-      '</div>';
-  };
-
-  /* Kode QR BNI Connect. Dibungkus tautan supaya di HP tidak perlu dipindai pakai
-     alat lain, cukup diketuk. Di mode sunting tautannya dimatikan agar gambarnya
-     bisa diganti lewat tombol Ganti gambar. */
-  function qrHtml(q) {
-    if (!q || !has(q.src)) return '';
+  /* Kode QR. Dibungkus tautan supaya di HP tidak perlu dipindai pakai alat lain, cukup
+     diketuk. Di mode sunting tautannya dimatikan agar gambarnya bisa diganti. */
+  function qrHtml(q, p) {
+    if (!has(q.src)) {
+      return editing() ? '<div class="qrbox w-ph"><p class="qrhint">' +
+        T('Belum ada QR. Ketuk Atur lalu isi link-nya, QR dibuat otomatis.', 'No QR yet. Tap Settings and enter a link, the QR is made for you.') +
+        '</p></div>' : '';
+    }
     var tap = has(q.url) && !editing();
     return '<div class="qrbox">' +
-      (tap ? '<a class="qrtap" href="' + esc(q.url) + '" target="_blank" rel="noopener">' : '<div class="qrtap">') +
-      '<img class="qrimg" src="' + esc(q.src) + '" alt="' + esc(L(q, 'label') || 'QR') + '" loading="lazy" data-img="bni.qr.src">' +
+      (tap ? '<a class="qrtap" href="' + esc(safeUrl(q.url)) + '" target="_blank" rel="noopener">' : '<div class="qrtap">') +
+      '<img class="qrimg" src="' + esc(q.src) + '" alt="' + esc(L(q, 'label') || 'QR') + '" loading="lazy" data-img="' + p + '.src">' +
       (tap ? '</a>' : '</div>') +
-      '<div class="qrlab"' + ed(lp('bni.qr', 'label')) + '>' + esc(L(q, 'label')) + '</div>' +
+      '<div class="qrlab"' + ed(lp(p, 'label')) + '>' + esc(L(q, 'label')) + '</div>' +
       (has(L(q, 'hint')) || editing()
-        ? '<p class="qrhint"' + ed(lp('bni.qr', 'hint'), 1) + '>' + L(q, 'hint') + '</p>' : '') +
+        ? '<p class="qrhint"' + ed(lp(p, 'hint'), 1) + '>' + rich(L(q, 'hint')) + '</p>' : '') +
       '</div>';
   }
 
-  view.bni = function () {
-    var b = D.bni || {}, biz = D.bisnis || {}, rows = '';
-    function row(k, v, path) {
-      if (!has(v) && !editing()) return '';
-      return '<div class="meta-row"><div class="meta-k">' + esc(k) + '</div>' +
-        '<div class="meta-v"' + ed(path) + '>' + v + '</div></div>';
-    }
-    rows += row('Chapter', esc(b.chapter), 'bni.chapter');
-    rows += row(T('Klasifikasi', 'Classification'), esc(L(b, 'klasifikasi')), lp('bni', 'klasifikasi'));
-    rows += row(T('Peran', 'Role'), esc(L(b, 'peran')), lp('bni', 'peran'));
-    rows += row(T('Anggota Sejak', 'Member Since'), esc(L(b, 'since')), lp('bni', 'since'));
-    rows += row(T('Bisnis', 'Business'),
-      '<span' + ed('bisnis.nama') + '>' + esc(biz.nama) + '</span>' +
-      (has(biz.sejak) || editing()
-        ? ' <span style="color:var(--dm)">est. <span' + ed('bisnis.sejak') + '>' + esc(biz.sejak) + '</span></span>' : ''),
-      '');
-    return '<div class="step">' + h2(T('Keanggotaan', 'Membership')) +
-      pinRow() +
-      '<div class="meta">' + rows + '</div><!--blocks-->' + chips(b.status, 'bni.status') +
-      (has(L(biz, 'layanan')) || editing()
-        ? '<p class="p"' + ed(lp('bisnis', 'layanan'), 1) + '>' + L(biz, 'layanan') + '</p>' : '') +
-      qrHtml(b.qr) +
-      '</div>';
-  };
+  /* Tabel dua kolom (label dan isi). Kolom kosong tidak tampil, kecuali saat menyunting
+     supaya bisa diisi. Baris bisa di-hide tanpa dihapus. Strip foto opsional di bawahnya. */
+  function tableHtml(w, p) {
+    var rows = (w.rows || []).map(function (r, ri) {
+      var rp = p + '.rows.' + ri, v = L(r, 'value');
+      if ((!has(v) || r.hidden) && !editing()) return '';
+      var hd = editing() ? ' data-hide="' + esc(rp) + '"' : '';
+      return '<div class="meta-row' + (r.hidden ? ' ed-off' : '') + '"' + hd + '><div class="meta-k"' + ed(lp(rp, 'label')) + '>' + esc(L(r, 'label')) + '</div>' +
+        '<div class="meta-v"' + ed(lp(rp, 'value')) + '>' + (editing() ? esc(v) : igLinks(v, r.links)) + '</div></div>';
+    }).join('');
+    // strip foto kecil di bawah baris, tiga terlihat, sisanya digeser
+    var photos = (w.photos || []).map(function (ph, pi) {
+      if (!ph || !has(ph.src)) return '';
+      return '<div class="bs-ph"><img src="' + esc(ph.src) + '" alt="' + esc(L(ph, 'alt')) + '" loading="lazy" data-img="' + p + '.photos.' + pi + '.src"></div>';
+    }).join('');
+    if (!rows && !photos && !editing()) return '';
+    var title = L(w, 'title');
+    return (has(title) || (editing() && w.title_id != null)
+        ? '<div class="bs-h"' + ed(lp(p, 'title')) + '>' + esc(title) + '</div>' : '') +
+      '<div class="meta' + (w.stack ? ' bs-stack' : '') + '"' + (editing() ? ' data-arr="' + p + '.rows" data-kind="row"' : '') + '>' + rows +
+      (photos ? '<div class="bs-photos">' + photos + '</div>' : '') + '</div>';
+  }
 
-  /* Lima pilar tampil sekaligus, isinya dibuka tutup lewat tombol plus. */
-  view.gains = function () {
-    var rows = PILLARS.map(function (key, i) {
-      var g = (D.gains || {})[key] || {};
-      var ipath = 'gains.' + key + '.items';
-      var items = (g.items || []).map(function (it, j) {
-        return '<li' + ed(ipath + '.' + j + '.' + lang, 1) + '>' + (it[lang] || it.id || it.en || '') + '</li>';
+  /* Kotak huruf atau ikon di kiri judul accordion, seperti G A I N S. */
+  function badgeHtml(g, gp) {
+    var inner = g.icon && ICON[g.icon] ? svg(g.icon) : esc(g.badge || '');
+    return '<span class="acc-l' + (g.icon && ICON[g.icon] ? ' ico' : '') + '" aria-hidden="true"' +
+      (editing() ? ' data-badge="' + esc(gp) + '"' : '') + '>' + inner + '</span>';
+  }
+
+  /* Accordion bergaya GAINS: kotak huruf atau ikon, judul, isi yang dibuka tutup lewat
+     tombol plus. Item pertama terbuka di awal. collapsible:false membuat semua terbuka. */
+  var open = {};
+  function accHtml(w, p) {
+    var col = w.collapsible !== false;
+    var rows = (w.items || []).map(function (g, i) {
+      var gp = p + '.items.' + i, ok = w.id + ':' + (g.k || i);
+      var list = (g.list || []).map(function (it, j) {
+        return '<li' + ed(gp + '.list.' + j + '.' + lang, 1) + '>' + rich(it[lang] || it.id || it.en || '') + '</li>';
       }).join('');
-      var on = !!open[key];
-      return '<div class="acc-i' + (on ? ' on' : '') + '" data-pil="' + esc(key) + '">' +
-        '<div class="acc-h">' +
-        '<span class="acc-l" aria-hidden="true">' + esc(g.letter || key.charAt(0).toUpperCase()) + '</span>' +
-        '<span class="acc-t"' + ed(lp('gains.' + key, 'title')) + '>' + esc(L(g, 'title')) + '</span>' +
-        '<button class="acc-x" aria-expanded="' + on + '" aria-label="' + esc(L(g, 'title')) + '"></button>' +
+      var on = !col || (open[ok] != null ? open[ok] : i === 0);
+      return '<div class="acc-i' + (on ? ' on' : '') + '" data-pil="' + esc(ok) + '">' +
+        '<div class="acc-h">' + badgeHtml(g, gp) +
+        '<span class="acc-t"' + ed(lp(gp, 'title')) + '>' + esc(L(g, 'title')) + '</span>' +
+        (col ? '<button class="acc-x" aria-expanded="' + on + '" aria-label="' + esc(L(g, 'title')) + '"></button>' : '') +
         '</div>' +
         '<div class="acc-p"><div><div class="acc-in">' +
         (has(L(g, 'body')) || editing()
-          ? '<p class="p"' + ed(lp('gains.' + key, 'body'), 1) + '>' + L(g, 'body') + '</p>' : '') +
-        (items || (editing() && g.items)
-          ? '<ul class="list" data-arr="' + ipath + '" data-kind="ml">' + items + '</ul>' : '') +
-        chips(g.chips, 'gains.' + key + '.chips') +
+          ? '<p class="p"' + ed(lp(gp, 'body'), 1) + '>' + rich(L(g, 'body')) + '</p>' : '') +
+        (list || (editing() && g.list)
+          ? '<ul class="list" data-arr="' + gp + '.list" data-kind="ml">' + list + '</ul>' : '') +
+        chips(g.chips, gp + '.chips') +
+        (editing() && (!g.list || !g.chips)
+          ? '<div class="ed-more" data-more="' + esc(gp) + '">' +
+            (!g.list ? '<button type="button" data-m="list">+ ' + T('Poin', 'Bullets') + '</button>' : '') +
+            (!g.chips ? '<button type="button" data-m="chips">+ ' + T('Chip', 'Chips') + '</button>' : '') + '</div>' : '') +
         '</div></div></div></div>';
     }).join('');
-    return '<div class="step">' +
-      h2(T('Profil GAINS', 'GAINS Profile')) +
-      '<div class="acc" id="pillnav" data-ord="pillars">' + rows + '</div></div>';
-  };
-
-  view.personal = function () {
-    var m = D.ministry || {}, o = D.offrecord || {};
-    var facts = (o.facts || []).map(function (f, i) {
-      return '<div class="fact"><div class="fact-n"' + ed('offrecord.facts.' + i + '.n') + '>' + esc(f.n) + '</div>' +
-        '<div class="fact-t"' + ed('offrecord.facts.' + i + '.' + lang, 1) + '>' + (f[lang] || f.id || f.en || '') + '</div></div>';
-    }).join('');
-    /* Carousel foto dan video pelayanan. Kosong = tidak tampil, kecuali saat menyunting:
-       kotak kosong jadi tempat tombol Atur slide dari editor. */
-    var mcar = carouselHtml('mincar', null, m.slides, 'ministry.slides') ||
-      (editing() ? '<div class="portrait carousel mincar mincar-empty" data-slides="ministry.slides"></div>' : '');
-    return '<div class="step">' +
-      h2(L(m, 'title'), lp('ministry', 'title')) + mcar + chips(m.chips, 'ministry.chips') +
-      '<div style="height:26px"></div>' + h2(L(o, 'title'), lp('offrecord', 'title')) +
-      '<div class="facts" data-arr="offrecord.facts" data-kind="fact">' + facts + '</div>' +
-      bioSheetHtml() + '</div>';
-  };
-
-  /* BNI Member Bio Sheet. Kolom kosong tidak tampil, kecuali saat menyunting
-     supaya bisa diisi dari editor. Grup tanpa isi ikut hilang. */
-  function bioSheetHtml() {
-    var b = D.biosheet;
-    if (!b) return '';
-    var groups = (b.groups || []).map(function (g, gi) {
-      var gp = 'biosheet.groups.' + gi;
-      var rows = (g.rows || []).map(function (r, ri) {
-        var rp = gp + '.rows.' + ri, v = L(r, 'value');
-        if ((!has(v) || r.hidden) && !editing()) return '';
-        // saat menyunting, baris yang di-hide tetap tampil redup dan diberi tombol mata oleh editor
-        var hd = editing() ? ' data-hide="' + esc(rp) + '"' : '';
-        return '<div class="meta-row' + (r.hidden ? ' ed-off' : '') + '"' + hd + '><div class="meta-k"' + ed(lp(rp, 'label')) + '>' + esc(L(r, 'label')) + '</div>' +
-          '<div class="meta-v"' + ed(lp(rp, 'value')) + '>' + (editing() ? esc(v) : igLinks(v, r.links)) + '</div></div>';
-      }).join('');
-      // strip foto kecil di bawah baris, tiga terlihat, sisanya digeser
-      var photos = (g.photos || []).map(function (p, pi) {
-        if (!p || !has(p.src)) return '';
-        return '<div class="bs-ph"><img src="' + esc(p.src) + '" alt="' + esc(L(p, 'alt')) + '" loading="lazy" data-img="' + gp + '.photos.' + pi + '.src"></div>';
-      }).join('');
-      if (!rows && !photos) return '';
-      return '<div class="bs-h"' + ed(lp(gp, 'title')) + '>' + esc(L(g, 'title')) + '</div>' +
-        '<div class="meta' + (g.stack ? ' bs-stack' : '') + '">' + rows +
-        (photos ? '<div class="bs-photos">' + photos + '</div>' : '') + '</div>';
-    }).join('');
-    if (!groups) return '';
-    return '<div style="height:26px"></div>' + h2(L(b, 'title'), lp('biosheet', 'title')) + groups;
+    return '<div class="acc" data-acc="' + esc(w.id) + '"' + (editing() ? ' data-arr="' + p + '.items" data-kind="acc"' : '') + '>' + rows + '</div>';
   }
 
   /* Nama di teks Bio Sheet yang punya post Instagram jadi tombol play. Teksnya tetap teks
@@ -396,25 +494,23 @@
     m.onclick = null;
   }
 
-  /* Top Ten Customers versi BNI: A Demographics, B Association, C How you found them, D Hot buttons. */
-  function top10Html() {
-    var t = D.top10;
-    if (!t) return '';
-    var items = (t.items || []).map(function (f, i) {
-      return '<div class="fact"><div class="fact-n"' + ed('top10.items.' + i + '.n') + '>' + esc(f.n) + '</div>' +
-        '<div class="fact-t"' + ed('top10.items.' + i + '.' + lang, 1) + '>' + (f[lang] || f.id || f.en || '') + '</div></div>';
+  /* Daftar bernomor (Off the Record, Top Ten Customers): nomor atau huruf, lalu teks. */
+  function factsHtml(w, p) {
+    var items = (w.items || []).map(function (f, i) {
+      var fp = p + '.items.' + i;
+      return '<div class="fact"><div class="fact-n"' + ed(fp + '.n') + '>' + esc(f.n) + '</div>' +
+        '<div class="fact-t"' + ed(fp + '.' + lang, 1) + '>' + rich(f[lang] || f.id || f.en || '') + '</div></div>';
     }).join('');
     if (!items && !editing()) return '';
-    return '<div style="height:26px"></div>' + h2(L(t, 'title'), lp('top10', 'title')) +
-      '<div class="facts" data-arr="top10.items" data-kind="fact">' + items + '</div>';
+    return '<div class="facts" data-arr="' + p + '.items" data-kind="fact">' + items + '</div>';
   }
 
-  /* Tumpukan 3D cuma ilustrasi. Pilihan tier lewat tombol di bawahnya,
-     karena lapisan 3D terlalu kecil untuk diketuk jari. */
-  /* Sebelum memilih: tumpukan 3D sebagai ilustrasi. Setelah memilih: tumpukan berputar
-     jadi lingkaran datar berurutan ke bawah, tiap lingkaran langsung diikuti deskripsinya. */
-  view.refer = function () {
-    var r = D.refer || {}, list = r.tiers || [];
+  /* Tumpukan 3D Bread, Cheese, Meat. Sebelum memilih: tumpukan sebagai ilustrasi.
+     Setelah memilih: tumpukan berputar jadi lingkaran datar berurutan ke bawah, tiap
+     lingkaran langsung diikuti deskripsinya. Pilihan tier lewat tombol di bawahnya,
+     karena lapisan 3D terlalu kecil untuk diketuk jari. Satu kartu satu tumpukan. */
+  function tiersHtml(w, p) {
+    var list = w.items || [];
     /* Ikon burger 4 garis (roti atas, cheese, meat, roti bawah). Tier 0 menyalakan
        dua garis roti, tier 1 garis kedua, tier 2 garis ketiga. */
     var lines = '<i></i><i></i><i></i><i></i>';
@@ -427,11 +523,8 @@
     var back = tier < 0 ? '' :
       '<button class="tback" id="tback" aria-label="' + T('Kembali ke tumpukan 3D', 'Back to the 3D stack') + '">' +
       '<span class="tico tall" aria-hidden="true" style="--c0:' + col(0) + ';--c1:' + col(1) + ';--c2:' + col(2) + '">' + lines + '</span></button>';
-    var head = '<div class="step">' + h2(L(r, 'title'), lp('refer', 'title')) +
-      (has(L(r, 'intro')) || editing()
-        ? '<p class="p"' + ed(lp('refer', 'intro')) + '>' + esc(L(r, 'intro')) + '</p>' : '');
     var nav = '<div class="tierbar">' + back +
-      '<div class="tiers" id="tiernav" data-arr="refer.tiers" data-kind="fixed">' + btns + '</div></div>';
+      '<div class="tiers" id="tiernav" data-arr="' + p + '.items" data-kind="fixed">' + btns + '</div></div>';
     if (tier < 0) {
       var slabs = list.map(function (x, i) {
         return '<div class="slab" data-tier="' + i + '" aria-hidden="true"' +
@@ -439,20 +532,22 @@
           '<span class="bot"></span><span class="top"></span>' +
           '<b class="nm">' + esc(x.name || '') + '</b></div>';
       }).join('');
-      return head + '<div class="burger" id="burger"><div class="scene">' + slabs + '</div></div>' + nav +
-        '<p class="pick">' + T('Pilih salah satu lapisan.', 'Pick one of the layers.') + '</p>' + top10Html() + '</div>';
+      return '<div class="burger" id="burger"><div class="scene">' + slabs + '</div></div>' + nav +
+        '<p class="pick">' + T('Pilih salah satu lapisan.', 'Pick one of the layers.') + '</p>';
     }
     var flats = list.map(function (x, i) {
-      var tp = 'refer.tiers.' + i;
+      var tp = p + '.items.' + i;
       return '<div class="tflat' + (i === tier && !flipPending ? ' on' : '') + '" id="tier' + i + '" data-i="' + i + '" style="--tc:' + esc(x.color || '#8E8E93') + ';--d:' + i + '">' +
         '<div class="tdisc" data-tier="' + i + '"><b' + ed(tp + '.name') + '>' + esc(x.name || '') + '</b></div>' +
         '<div class="tier-lvl"' + ed(lp(tp, 'level')) + '>' + esc(L(x, 'level')) + '</div>' +
         '<p class="tier-body"' + ed(lp(tp, 'body')) + '>' + esc(L(x, 'body')) + '</p></div>';
     }).join('');
-    return head + nav + '<div class="tflats" id="tflats">' + flats + '</div>' + top10Html() + '</div>';
-  };
+    return nav + '<div class="tflats" id="tflats">' + flats + '</div>';
+  }
 
-  view.connect = function () {
+  /* Daftar kontak. Datanya global (D.contact) karena dipakai juga oleh tombol WhatsApp,
+     tombol Instagram, dan file vCard. */
+  function contactHtml() {
     var c = D.contact || {}, hero = D.hero || {}, rows = '';
     function link(href, icon, text, path, prefix) {
       return '<a href="' + esc(href) + '" target="_blank" rel="noopener">' + svg(icon, 'ic') +
@@ -466,68 +561,169 @@
     if (has(c.web) || editing()) rows += link('https://' + String(c.web || '').replace(/^https?:\/\//, ''), 'web', c.web, 'contact.web');
     /* Nomor WhatsApp tidak tampil di kartu, tapi harus bisa diperbaiki dari editor. */
     if (editing()) rows += link('#', 'wa', c.wa || '', 'contact.wa');
-    return '<div class="step">' +
-      h2("Let's Connect") +
-      '<div class="contact">' + rows + '</div>' +
-      '<button class="nextlink" id="share">' + T('Bagikan kartu ini', 'Share this card') +
-      '<span>' + svg('share') + '</span></button>' +
-      reelBtn() +
-      (has((D.images || {}).logo)
-        ? '<img class="foot-logo" src="' + esc((D.images || {}).logo) + '" alt="Increasink" data-img="images.logo">' : '') +
-      '<p class="p" style="font-size:12.5px">' + esc(hero.name || '') + ' &middot; ' + esc((D.bisnis || {}).nama || '') + '</p>' +
-      '</div>';
-  };
+    return '<div class="contact">' + rows + '</div>';
+  }
 
   /* ---------- showreel ----------
-     Latar tombol memakai poster slide yang sama, jadi tidak ada berkas baru yang diunduh.
-     Videonya pun src yang sama, sehingga diambil dari cache browser. */
-  function reelBtn() {
-    var r = D.showreel || {};
+     Tombol gelap pekat dengan keping video 16:9 di kanan. Latar video penuh pernah dicoba
+     dan rusak begitu videonya berlatar putih, jadi jangan dikembalikan. */
+  function reelBtn(r, p) {
     if (!has(r.src) && !editing()) return '';
     /* Latar tombol memakai klip pendek kalau ada, bukan film penuh, supaya pengunjung
        yang meloncat langsung ke tab Contact tidak menarik berkas besar hanya untuk
        sebuah strip setinggi 92px. */
-    return '<div class="reel" id="reel" role="button" tabindex="0">' +
+    return '<div class="reel"' + once('reel') + ' role="button" tabindex="0" data-reel="' + esc(p) + '">' +
       '<span class="reel-ic">' + svg('play') + '</span>' +
-      '<span class="reel-t"><b' + ed(lp('showreel', 'label')) + '>' + esc(L(r, 'label') || 'Our Showreel') + '</b>' +
+      '<span class="reel-t"><b' + ed(lp(p, 'label')) + '>' + esc(L(r, 'label') || 'Our Showreel') + '</b>' +
       (has(L(r, 'note')) || editing()
-        ? '<i' + ed(lp('showreel', 'note')) + '>' + esc(L(r, 'note')) + '</i>' : '') +
+        ? '<i' + ed(lp(p, 'note')) + '>' + esc(L(r, 'note')) + '</i>' : '') +
       '</span>' +
-      '<video class="reel-bg" src="' + esc(r.loop || r.src) + '"' +
+      (has(r.src) ? '<video class="reel-bg" src="' + esc(r.loop || r.src) + '"' +
       (has(r.poster) ? ' poster="' + esc(r.poster) + '"' : '') +
-      ' muted playsinline loop preload="metadata" aria-hidden="true" tabindex="-1"></video></div>';
+      ' muted playsinline loop preload="metadata" aria-hidden="true" tabindex="-1"></video>' : '') + '</div>';
   }
 
-  function reelOpen() {
-    var r = D.showreel || {}, m = el('modal');
-    // videonya sendiri jadi slide pembuka overlay, baru disusul slide carousel Kenalan
-    var car = carouselHtml('reelcar', has(r.src) ? { type: 'video', src: r.src, poster: r.poster } : null);
+  /* Carousel utama kartu (yang ditandai main, atau carousel pertama) ikut diputar di
+     overlay showreel, sesudah video showreel-nya sendiri. */
+  function mainCarousel() {
+    var first = null, main = null;
+    (D.pages || []).forEach(function (pg) {
+      (pg && pg.widgets || []).forEach(function (w) {
+        if (!w || w.type !== 'carousel' || w.hidden) return;
+        if (!first) first = w;
+        if (w.main && !main) main = w;
+      });
+    });
+    return main || first;
+  }
+
+  function reelOpen(r) {
+    var m = el('modal'), mc = mainCarousel() || {};
+    // videonya sendiri jadi slide pembuka overlay, baru disusul slide carousel utama
+    var car = carouselHtml({ cls: 'reelcar', key: 'reelcar', slides: mc.slides, sound: mc.sound,
+      lead: has(r.src) ? { type: 'video', src: r.src, poster: r.poster } : null });
     if (!car) return;
     /* Selalu mulai dari slide pertama, dan suara dinyalakan karena overlay ini
        hanya terbuka lewat ketukan, jadi browser mengizinkan. playVid() tetap
        punya jalan mundur ke tanpa suara kalau ditolak. */
-    carIndex = 0;
+    carPos.reelcar = 0;
     introSound = true;
     // video kecil di tombol dihentikan, percuma ikut didekode di balik overlay
-    var bg = document.querySelector('.reel-bg');
-    if (bg) bg.pause();
+    Array.prototype.forEach.call(document.querySelectorAll('.reel-bg'), function (v) { v.pause(); });
     m.className = 'modal full show';
     m.innerHTML = '<div class="reelbox" role="dialog" aria-modal="true" aria-label="' +
       esc(L(r, 'label') || 'Our Showreel') + '">' + car +
       '<button class="reel-x" id="reelx" aria-label="' + T('Tutup', 'Close') + '">' + svg('close') + '</button></div>';
     m.onclick = function (e) { if (e.target === m || e.target.closest('#reelx')) reelClose(); };
-    var box = m.querySelector('#car');
+    var box = m.querySelector('.carousel');
     if (box) carousel(box);
   }
 
   function reelClose() {
     var m = el('modal');
     Array.prototype.forEach.call(m.querySelectorAll('video'), function (v) { v.pause(); });
-    clearTimeout(carTimer);
+    clearTimeout(carTimers.reelcar);
     m.className = 'modal';
     m.innerHTML = '';
     m.onclick = null;
-    playReelBg();          // video di tombol dihidupkan lagi
+    playReelBgs();          // video di tombol dihidupkan lagi
+  }
+
+  /* Gambar. w = lebar dalam persen kolom, align kiri/tengah/kanan. Gaya logo memakai
+     tinggi tetap (h piksel) dan boleh dibalik warnanya di halaman gelap. */
+  function imageHtml(w, p) {
+    if (!has(w.src)) {
+      return editing() ? '<div class="w-ph" data-img="' + p + '.src">' + T('Belum ada gambar.', 'No image yet.') + '</div>' : '';
+    }
+    if (w.style === 'logo') {
+      var h = Math.round(clamp(w.h || 28, 12, 120));
+      return '<img class="foot-logo' + (w.invert ? '' : ' noinv') + '" src="' + esc(w.src) + '" alt="' + esc(w.alt || L(w, 'caption')) + '"' +
+        (h !== 28 ? ' style="height:' + h + 'px"' : '') + ' data-img="' + p + '.src">';
+    }
+    var cap = L(w, 'caption'), pct = Math.round(clamp(w.w || 100, 10, 100)), al = w.align || 'center';
+    var st = pct < 100 ? 'width:' + pct + '%;' + (al === 'left' ? '' : al === 'right' ? 'margin-left:auto;' : 'margin-left:auto;margin-right:auto;') : '';
+    var img = '<img src="' + esc(w.src) + '" alt="' + esc(cap) + '" loading="lazy" data-img="' + p + '.src"' + (w.round === false ? ' class="sq"' : '') + '>';
+    if (has(w.link) && !editing()) img = '<a href="' + esc(safeUrl(w.link)) + '" target="_blank" rel="noopener">' + img + '</a>';
+    return '<figure class="blk-img wimg"' + (st ? ' style="' + st + '"' : '') + ' data-wimg="' + esc(p) + '">' + img +
+      (has(cap) || editing() ? '<figcaption class="blk-cap"' + ed(lp(p, 'caption')) + '>' + esc(cap) + '</figcaption>' : '') +
+      '</figure>';
+  }
+
+  function textHtml(w, p) {
+    var b = L(w, 'body');
+    if (!has(b) && !editing()) return '';
+    var css = (w.size === 's' ? 'font-size:15px;' : w.size === 'xs' ? 'font-size:12.5px;' : w.size === 'l' ? 'font-size:20px;' : '') +
+      (w.align === 'center' ? 'text-align:center;' : '');
+    css = css.replace(/;$/, '');
+    return '<p class="' + (w.style === 'quote' ? 'quote' : 'p') + '"' + (css ? ' style="' + css + '"' : '') +
+      ed(lp(p, 'body'), 1) + '>' + rich(b) + '</p>';
+  }
+
+  function headingHtml(w, p) {
+    var t = L(w, 'text');
+    if (!has(t) && !editing()) return '';
+    if (w.size === 's') return '<div class="bs-h"' + ed(lp(p, 'text')) + '>' + esc(t) + '</div>';
+    return h2(t, lp(p, 'text'));
+  }
+
+  function buttonHtml(w, p) {
+    var t = L(w, 'label');
+    if (editing()) return '<div class="nextlink wbtn"><span' + ed(lp(p, 'label')) + '>' + esc(t) + '</span><span><i class="ar2">&rsaquo;</i></span></div>';
+    if (!has(t) || !has(w.url)) return '';
+    return '<a class="nextlink wbtn" href="' + esc(safeUrl(w.url)) + '" target="_blank" rel="noopener">' + esc(t) +
+      '<span><i class="ar2">&rsaquo;</i></span></a>';
+  }
+
+  /* Semua jenis widget. Masing-masing menerima (widget, alamat data, indeks di halaman)
+     dan mengembalikan HTML. String kosong berarti tidak tampil. */
+  var WG = {
+    heading: headingHtml,
+    text: textHtml,
+    image: imageHtml,
+    button: buttonHtml,
+    space: function (w) { return '<div style="height:' + Math.round(clamp(w.h == null ? 26 : w.h, 0, 160)) + 'px"></div>'; },
+    carousel: function (w, p, i) {
+      var c = carouselHtml({ cls: i ? 'mincar' : '', key: w.id, slides: w.slides, path: p + '.slides', sound: w.sound });
+      if (c || !editing()) return c;
+      return '<div class="portrait carousel' + (i ? ' mincar' : '') + ' mincar-empty" data-slides="' + esc(p + '.slides') + '"></div>';
+    },
+    profile: function () {
+      var hero = D.hero || {};
+      return '<h2 class="name"' + ed('hero.name') + '>' + esc(hero.name || '') + '</h2>' +
+        '<p class="role"' + ed(lp('hero', 'role')) + '>' + esc(L(hero, 'role')) + '</p>';
+    },
+    instagram: function (w) { return igHtml(has(w.user) ? w.user : (D.contact || {}).ig); },
+    pins: function (w, p) { return w.shared ? pinRow(D.pins, 'pins') : pinRow(w.items, p + '.items'); },
+    table: tableHtml,
+    chips: function (w, p) { return chips(w.items, p + '.items'); },
+    accordion: accHtml,
+    facts: factsHtml,
+    qr: qrHtml,
+    tiers: tiersHtml,
+    contact: contactHtml,
+    share: function () {
+      return '<button class="nextlink"' + once('share') + ' data-share="1">' + T('Bagikan kartu ini', 'Share this card') +
+        '<span>' + svg('share') + '</span></button>';
+    },
+    showreel: reelBtn
+  };
+
+  /* Satu halaman = daftar widget. Di mode baca widget digambar apa adanya tanpa pembungkus,
+     jadi tampilannya sama persis dengan kartu sebelum ada widget. Saat menyunting tiap
+     widget dibungkus .w supaya bisa dipilih, digeser, dan diatur. */
+  function pageHtml(s) {
+    var pg = (D.pages || [])[s.page] || {}, list = Array.isArray(pg.widgets) ? pg.widgets : [];
+    var base = 'pages.' + s.page + '.widgets', on = editing();
+    var html = list.map(function (w, i) {
+      if (!w || !WG[w.type] || (w.hidden && !on)) return '';
+      var inner = WG[w.type](w, base + '.' + i, i) || '';
+      if (!on) return inner;
+      return '<div class="w' + (w.hidden ? ' w-off' : '') + (inner ? '' : ' w-blank') + '" data-w="' + i + '" data-wt="' + esc(w.type) + '">' + inner + '</div>';
+    }).join('');
+    if (on && !list.length) {
+      html = '<div class="w-empty">' + T('Halaman ini masih kosong. Ketuk + untuk menambah widget.', 'This page is empty. Tap + to add a widget.') + '</div>';
+    }
+    return '<div class="step"' + (on ? ' data-wl="' + base + '"' : '') + '>' + html + '</div>';
   }
 
   /* Video kecil yang main di dalam tombol Our Showreel. Berkasnya sama dengan slide
@@ -543,22 +739,24 @@
      tombolnya benar-benar mendekat layar. */
   var reelSpy = null;
   function armReelBg() {
-    var v = document.querySelector('.reel-bg');
-    if (!v) return;
+    var vs = document.querySelectorAll('#stage .reel-bg');
     if (reelSpy) { reelSpy.disconnect(); reelSpy = null; }
-    if (!window.IntersectionObserver) { playReelBg(); return; }
+    if (!vs.length) return;
+    if (!window.IntersectionObserver) { playReelBgs(); return; }
     reelSpy = new IntersectionObserver(function (list) {
       list.forEach(function (x) {
         if (!x.isIntersecting) return;
-        playReelBg();
-        if (reelSpy) { reelSpy.disconnect(); reelSpy = null; }
+        playReelBg(x.target);
+        if (reelSpy) reelSpy.unobserve(x.target);
       });
     }, { root: el('stage'), rootMargin: '150px 0px' });
-    reelSpy.observe(v);
+    Array.prototype.forEach.call(vs, function (v) { reelSpy.observe(v); });
+  }
+  function playReelBgs() {
+    Array.prototype.forEach.call(document.querySelectorAll('#stage .reel-bg'), playReelBg);
   }
 
-  function playReelBg() {
-    var v = document.querySelector('.reel-bg');
+  function playReelBg(v) {
     if (!v) return;
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     v.muted = true;
@@ -615,14 +813,8 @@
         '</div>';
     }
 
-    var body = view[s.key]();
-    if (s.key !== 'cover') {
-      // pakai fungsi pengganti, supaya "$&" di teks isian tidak dibaca sebagai pola replace
-      var bh = blocksHtml(s.key);
-      body = body.indexOf('<!--blocks-->') >= 0
-        ? body.replace('<!--blocks-->', function () { return bh; })
-        : body.replace(/<\/div>\s*$/, function () { return bh + '</div>'; });
-    }
+    ONE = {};
+    var body = s.key === 'cover' ? coverHtml() : pageHtml(s);
     if (s.key !== 'cover' && step < STEPS.length - 1) {
       body = body.replace(/<\/div>\s*$/, '<button class="nextlink" id="next">' +
         T('Lanjut', 'Continue') + '<span>' + esc(T(STEPS[step + 1].tab[0], STEPS[step + 1].tab[1])) +
@@ -644,16 +836,19 @@
     if (el('next')) el('next').addEventListener('click', next);
     if (el('back')) el('back').addEventListener('click', back);
     if (el('wa')) el('wa').addEventListener('click', waOpen);
-    if (el('share')) el('share').addEventListener('click', share);
-    if (el('reel')) {
-      armReelBg();
-      el('reel').addEventListener('click', function () { if (!editing()) reelOpen(); });
-      el('reel').addEventListener('keydown', function (e) {
+    Array.prototype.forEach.call(document.querySelectorAll('[data-share]'), function (b) {
+      b.addEventListener('click', function () { share(b); });
+    });
+    armReelBg();
+    Array.prototype.forEach.call(document.querySelectorAll('#stage .reel'), function (r) {
+      var w = pget(r.dataset.reel) || {};
+      r.addEventListener('click', function () { if (!editing()) reelOpen(w); });
+      r.addEventListener('keydown', function (e) {
         if (editing() || (e.key !== 'Enter' && e.key !== ' ')) return;
         e.preventDefault();
-        reelOpen();
+        reelOpen(w);
       });
-    }
+    });
     Array.prototype.forEach.call(document.querySelectorAll('.iglink'), function (b) {
       b.addEventListener('click', function () { igOpen(b.dataset.ig, b.dataset.name); });
     });
@@ -665,17 +860,19 @@
     if (el('lid')) el('lid').addEventListener('click', function () { setLang('id'); });
     if (el('len')) el('len').addEventListener('click', function () { setLang('en'); });
 
-    var pn = el('pillnav');
-    if (pn) pn.addEventListener('click', function (e) {
+    Array.prototype.forEach.call(document.querySelectorAll('#stage .acc[data-acc]'), function (pn) {
+      pn.addEventListener('click', function (e) {
       var it = e.target.closest('.acc-i');
       if (!it || !e.target.closest('.acc-h')) return;
       /* di mode sunting, ketukan pada teks dipakai untuk mengedit, bukan membuka */
       if (editing() && !e.target.closest('.acc-x')) return;
-      var k = it.dataset.pil, on = !open[k];
+      var x = it.querySelector('.acc-x');
+      if (!x) return;    // accordion yang selalu terbuka
+      var k = it.dataset.pil, on = !it.classList.contains('on');
       open[k] = on;
       it.classList.toggle('on', on);
-      var x = it.querySelector('.acc-x');
-      if (x) x.setAttribute('aria-expanded', String(on));
+      x.setAttribute('aria-expanded', String(on));
+      });
     });
     [el('tiernav'), el('burger'), el('tflats')].forEach(function (n) {
       if (n) n.addEventListener('click', function (e) {
@@ -685,7 +882,7 @@
     });
     armIg();
     if (el('burger')) tilt(el('burger'));
-    if (el('car')) carousel(el('car'));
+    Array.prototype.forEach.call(document.querySelectorAll('#stage .carousel[data-car]'), carousel);
     if (el('tflats')) spyTiers();
     if (el('tback')) el('tback').addEventListener('click', function () {
       tier = -1;
@@ -746,20 +943,20 @@
      betul mendekat. Tanpa IntersectionObserver, dipasang langsung. */
   var igSpy = null;
   function armIg() {
-    var f = document.querySelector('.igframe');
-    if (!f || !f.dataset.src) return;
-    var load = function () {
+    var fs = Array.prototype.filter.call(document.querySelectorAll('.igframe'), function (f) { return f.dataset.src; });
+    if (igSpy) { igSpy.disconnect(); igSpy = null; }
+    if (!fs.length) return;
+    var load = function (f) {
       if (!f.dataset.src) return;
       f.src = f.dataset.src;
       delete f.dataset.src;
-      if (igSpy) { igSpy.disconnect(); igSpy = null; }
+      if (igSpy) igSpy.unobserve(f);
     };
-    if (!window.IntersectionObserver) { load(); return; }
-    if (igSpy) igSpy.disconnect();
+    if (!window.IntersectionObserver) { fs.forEach(load); return; }
     igSpy = new IntersectionObserver(function (list) {
-      list.forEach(function (x) { if (x.isIntersecting) load(); });
+      list.forEach(function (x) { if (x.isIntersecting) load(x.target); });
     }, { root: el('stage'), rootMargin: '250px 0px' });
-    igSpy.observe(f);
+    fs.forEach(function (f) { igSpy.observe(f); });
   }
 
   var spy = null;
@@ -784,14 +981,13 @@
     b.setAttribute('aria-pressed', String(introSound));
     b.setAttribute('aria-label', introSound ? T('Matikan suara', 'Mute') : T('Nyalakan suara', 'Unmute'));
   }
-  function playVid(v) {
+  function playVid(v, b) {
     var p = v.play();
     if (p && p.catch) p.catch(function () {
       // browser menolak suara tanpa ketukan: lanjut tanpa suara supaya video tetap jalan
       if (!v.muted) {
         v.muted = true;
         introSound = false;
-        var b = el('vsound');
         if (b) paintSound(b);
         v.play().catch(function () { /* poster tetap tampil */ });
       }
@@ -801,17 +997,19 @@
   /* Carousel step Kenalan. Geser jari memakai scroll-snap bawaan browser, jadi rasanya sama
      seperti Instagram. Maju sendiri saat video selesai atau setelah 5 detik untuk gambar,
      dan kembali ke slide pertama setelah slide terakhir. Posisi slide diingat saat render ulang. */
-  var carIndex = 0, carTimer = null, carKey = null;
+  /* Posisi dan timer disimpan per carousel (data-car), jadi beberapa carousel bisa hidup
+     di satu halaman dan posisinya tetap diingat saat render ulang. */
+  var carPos = {}, carTimers = {};
   var IMG_MS = 5000;
   function carousel(box) {
+    var key = box.dataset.car;
     var track = box.querySelector('.car-track');
     var slides = Array.prototype.slice.call(track.children);
     var dots = box.querySelectorAll('.car-dots i');
-    var sb = el('vsound');
+    var sb = box.querySelector('.vsound');
     var n = slides.length;
-    clearTimeout(carTimer);
-    // posisi hanya diingat untuk carousel yang sama, carousel lain mulai dari slide pertama
-    if (box.dataset.car !== carKey) { carKey = box.dataset.car; carIndex = 0; }
+    var carIndex = carPos[key] || 0;
+    clearTimeout(carTimers[key]);
     if (carIndex > n - 1) carIndex = 0;
 
     function media(i) { return slides[i] && slides[i].querySelector('video'); }
@@ -826,8 +1024,9 @@
     }
     function alive() { return document.body.contains(track); }
     function activate(i) {
-      clearTimeout(carTimer);
+      clearTimeout(carTimers[key]);
       carIndex = i;
+      carPos[key] = i;
       Array.prototype.forEach.call(dots, function (d, j) { d.classList.toggle('on', j === i); });
       slides.forEach(function (s, j) {
         var o = media(j);
@@ -835,8 +1034,8 @@
       });
       var v = arm(i, 'auto');
       if (sb) sb.hidden = !v || quiet(v);   // gambar dan slide senyap tidak punya suara
-      if (v) { v.volume = 1; v.muted = !introSound || quiet(v); playVid(v); }
-      else if (n > 1) carTimer = setTimeout(function () { if (alive()) next(); }, IMG_MS);
+      if (v) { v.volume = 1; v.muted = !introSound || quiet(v); playVid(v, sb); }
+      else if (n > 1) carTimers[key] = setTimeout(function () { if (alive()) next(); }, IMG_MS);
       if (n > 1) arm((i + 1) % n, 'metadata');   // cuma header, bukan seluruh berkas
     }
     // sengaja bukan go(), supaya tidak menutupi go() global yang memindahkan step
@@ -863,7 +1062,7 @@
     if (sb) sb.addEventListener('click', function () {
       introSound = !introSound;
       var v = arm(carIndex, 'auto');
-      if (v) { v.volume = 1; v.muted = !introSound || quiet(v); playVid(v); }
+      if (v) { v.volume = 1; v.muted = !introSound || quiet(v); playVid(v, sb); }
       /* Browser, terutama Safari iOS, hanya mengizinkan video bersuara yang pernah diputar
          lewat ketukan. Selagi masih di dalam ketukan ini, video lain diputar sebentar dengan
          volume 0 lalu dihentikan, supaya nanti boleh bersuara saat carousel maju sendiri. */
@@ -1032,13 +1231,13 @@
     el('modal').classList.remove('show');
   }
 
-  function share() {
+  function share(b) {
     var url = location.href.split('#')[0];
     var title = ((D.hero || {}).name || '') + ' · Bio GAINS';
     if (navigator.share) navigator.share({ title: title, text: title, url: url }).catch(function () {});
     else if (navigator.clipboard) {
       navigator.clipboard.writeText(url);
-      var b = el('share'); var o = b.innerHTML;
+      var o = b.innerHTML;
       b.textContent = T('Link tersalin', 'Link copied');
       setTimeout(function () { b.innerHTML = o; }, 1500);
     }
@@ -1052,17 +1251,15 @@
     data: function () { return D; },
     lang: function () { return lang; },
     steps: function () { return STEPS; },
-    stepDef: STEP_DEF,
-    stepAll: STEP_ALL,
-    pillars: function () { return PILLARS; },
-    pillarAll: PILL_ALL,
     at: function () { return step; },
+    /* dipakai editor untuk draft dan patokan yang masih berformat lama */
+    migrate: migrate,
+    icons: ICON,
     go: go,
     render: render,
     /* Dipakai setelah urutan atau visibilitas berubah. */
     rebuild: function () {
       buildSteps();
-      buildPillars();
       if (step > STEPS.length - 1) step = STEPS.length - 1;
       render();
     }
@@ -1087,8 +1284,7 @@
   mesh();
   document.addEventListener('pointerdown', ripple, { passive: true });
 
+  migrate(D);
   buildSteps();
-  buildPillars();
-  if (PILLARS.length) open[PILLARS[0]] = true;
   render();
 })();

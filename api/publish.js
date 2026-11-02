@@ -9,10 +9,13 @@ const MAX_BYTES = 512 * 1024;
 
 const SEP = new RegExp('[' + String.fromCharCode(0x2028, 0x2029) + ']', 'g');   // pemisah baris yang ilegal di dalam string JS
 
-/* Gambar hanya boleh dari folder img/ kartu sendiri atau dari Vercel Blob.
+/* Gambar dan video hanya boleh dari folder img/ kartu sendiri atau dari Vercel Blob.
    MEDIA_ORIGINS (opsional, dipisah koma) untuk asal tambahan, dipakai dev server lokal. */
-const BLOCK_TYPES = new Set(['row', 'text', 'image']);
 const BLOB_URL = /^https:\/\/[a-z0-9]+\.public\.blob\.vercel-storage\.com\//i;
+const WIDGET_TYPES = new Set(['heading', 'text', 'image', 'button', 'space', 'carousel', 'showreel', 'instagram',
+  'table', 'facts', 'accordion', 'chips', 'qr', 'profile', 'pins', 'contact', 'share', 'tiers']);
+const MAX_PAGES = 20;
+const MAX_WIDGETS = 80;
 
 function okSrc(s) {
   s = String(s || '');
@@ -22,28 +25,42 @@ function okSrc(s) {
     .map((o) => o.trim()).filter(Boolean)
     .some((o) => s.startsWith(o + '/'));
 }
+const optSrc = (s) => !s || okSrc(s);
+const okList = (l) => Array.isArray(l) && l.every((p) => p && typeof p === 'object' && okSrc(p.src));
+
+function checkSlides(list) {
+  if (list == null) return true;
+  if (!Array.isArray(list)) return false;
+  return list.every((s) => s && typeof s === 'object' && (s.type === 'image' || s.type === 'video') &&
+    okSrc(s.src) && optSrc(s.poster));
+}
+
+/* Kartu versi 2: pages[].widgets[]. Setiap jenis widget harus dikenal, dan setiap alamat
+   gambar atau video di dalamnya diperiksa. */
+function checkWidget(w) {
+  if (!w || typeof w !== 'object' || !WIDGET_TYPES.has(w.type)) return 'Jenis widget tidak dikenal.';
+  if ((w.type === 'image' || w.type === 'qr') && !optSrc(w.src)) return 'Alamat gambar tidak diizinkan.';
+  if (w.type === 'carousel' && !checkSlides(w.slides)) return 'Slide tidak valid.';
+  if (w.type === 'showreel' && !(optSrc(w.src) && optSrc(w.poster) && optSrc(w.loop))) return 'Alamat video tidak diizinkan.';
+  if (w.type === 'pins' && w.items != null && !okList(w.items)) return 'Pin tidak valid.';
+  if (w.type === 'table' && w.photos != null && !okList(w.photos)) return 'Foto tabel tidak valid.';
+  return null;
+}
 
 function checkMedia(data) {
   const imgs = data.images || {};
   for (const k of Object.keys(imgs)) {
     if (imgs[k] && !okSrc(imgs[k])) return 'Alamat gambar tidak diizinkan (' + k + ').';
   }
-  for (const list of [data.intro_slides, data.ministry && data.ministry.slides]) {
-    if (list == null) continue;
-    if (!Array.isArray(list)) return 'Slide tidak valid.';
-    for (const s of list) {
-      if (!s || typeof s !== 'object' || (s.type !== 'image' && s.type !== 'video') ||
-          !okSrc(s.src) || (s.poster && !okSrc(s.poster))) return 'Slide tidak valid.';
-    }
-  }
-  if (data.blocks == null) return null;
-  if (typeof data.blocks !== 'object' || Array.isArray(data.blocks)) return 'Blok tidak valid.';
-  for (const key of Object.keys(data.blocks)) {
-    const list = data.blocks[key];
-    if (!Array.isArray(list)) return 'Blok tidak valid.';
-    for (const b of list) {
-      if (!b || typeof b !== 'object' || !BLOCK_TYPES.has(b.type)) return 'Jenis blok tidak dikenal.';
-      if (b.type === 'image' && !okSrc(b.src)) return 'Alamat gambar tidak diizinkan.';
+  if (data.pins != null && !okList(data.pins)) return 'Pin tidak valid.';
+  if (data.pages == null) return 'Kartu belum berformat widget. Muat ulang editornya.';
+  if (!Array.isArray(data.pages) || !data.pages.length || data.pages.length > MAX_PAGES) return 'Daftar halaman tidak valid.';
+  for (const pg of data.pages) {
+    if (!pg || typeof pg !== 'object' || !Array.isArray(pg.widgets) || pg.widgets.length > MAX_WIDGETS) return 'Halaman tidak valid.';
+    if (!optSrc(pg.tab_img)) return 'Alamat ikon tab tidak diizinkan.';
+    for (const w of pg.widgets) {
+      const bad = checkWidget(w);
+      if (bad) return bad;
     }
   }
   return null;
