@@ -293,7 +293,7 @@ const tables = page('personal').widgets.filter((x) => x.type === 'table');
 const hobRow = tables[1].rows.find((r) => r.label_en === 'Hobbies');
 check('hide tersimpan di data', hobRow.hidden === true);
 BC.editing = false; BC.render();
-check('baris yang di-hide tidak tampil di kartu', !$('.step').textContent.includes('Badminton'));
+check('baris yang di-hide tidak tampil di kartu', !$('.step').textContent.includes('Hobbies'));
 BC.editing = true; BC.render();
 click(rowOf('Hobbies').querySelector('.ed-hide'));
 check('tampilkan lagi menghapus tanda hide', !('hidden' in hobRow));

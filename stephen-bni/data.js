@@ -335,8 +335,8 @@ var DATA = {
         {
           "id": "personal-1",
           "type": "heading",
-          "text_id": "My Ministry",
-          "text_en": "My Ministry"
+          "text_id": "My Interests",
+          "text_en": "My Interests"
         },
         {
           "id": "personal-2",
@@ -356,6 +356,8 @@ var DATA = {
           "id": "personal-3",
           "type": "chips",
           "items": [
+            "Padel",
+            "Badminton",
             "Prodiakon",
             "BPK PKK KAJ",
             "Perduki"
