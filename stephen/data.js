@@ -1,21 +1,11 @@
-/* Bio Card Stephen, profil umum. */
+/* Stephen full profile, membership-specific content excluded. */
 var DATA = {
-  "version": 2,
   "id": "stephen",
-  "lang_default": "id",
+  "lang_default": "en",
   "images": {
     "cover": "img/stephen-hd.jpg",
     "hero": "img/stephen-hd.jpg",
     "logo": "img/increasink.png"
-  },
-  "hero": {
-    "name": "Stephen Septian",
-    "initials": "SS",
-    "role_id": "Founder & Creative Director, Increasink",
-    "role_en": "Founder & Creative Director, Increasink",
-    "connector_id": "Bio Card",
-    "connector_en": "Bio Card",
-    "meta": "Business, Brand & People"
   },
   "contact": {
     "wa": "62817714647",
@@ -25,6 +15,15 @@ var DATA = {
     "linkedin": "stephen-septian",
     "web": "increasink.co.id",
     "vcf_note": "Founder & Creative Director Increasink, branding dan storytelling"
+  },
+  "hero": {
+    "name": "Stephen Septian",
+    "initials": "SS",
+    "role_id": "Founder & Creative Director, Increasink",
+    "role_en": "Founder & Creative Director, Increasink",
+    "connector_id": "Bio Card",
+    "connector_en": "Bio Card",
+    "meta": "Business, Brand & People"
   },
   "wa_form": {
     "head_id": "Mari terhubung",
@@ -55,9 +54,10 @@ var DATA = {
     "template_id": "Halo Pak Stephen, saya {name} dari {brand}. Saya ingin ngobrol tentang {message}.\n\nProfil: {link}\nSimpan kontak: {vcf}",
     "template_en": "Hi Stephen, I am {name} from {brand}. I would like to talk about {message}.\n\nProfile: {link}\nSave contact: {vcf}"
   },
+  "version": 2,
   "pages": [
     {
-      "key": "about",
+      "key": "intro",
       "icon": "person",
       "tab_id": "Kenalan",
       "tab_en": "About",
@@ -65,62 +65,488 @@ var DATA = {
       "label_en": "Introduction",
       "widgets": [
         {
-          "id": "about-photo",
-          "type": "image",
-          "src": "img/stephen-hd.jpg",
-          "caption_id": "Stephen Septian",
-          "caption_en": "Stephen Septian"
+          "id": "intro-1",
+          "type": "carousel",
+          "slides": [
+            {
+              "type": "video",
+              "src": "../bni/img/gold-v2.mp4",
+              "poster": "../bni/img/gold-v2-poster.webp"
+            },
+            {
+              "type": "video",
+              "src": "../bni/img/intro-v2.mp4",
+              "poster": "../bni/img/intro-poster.webp"
+            },
+            {
+              "type": "image",
+              "src": "../bni/img/slide2.webp"
+            },
+            {
+              "type": "video",
+              "src": "../bni/img/slide3.mp4",
+              "poster": "../bni/img/slide3-poster.webp"
+            },
+            {
+              "type": "video",
+              "src": "../bni/img/slide4.mp4",
+              "poster": "../bni/img/slide4-poster.webp"
+            }
+          ],
+          "sound": 2,
+          "main": true
         },
         {
-          "id": "about-profile",
+          "id": "intro-2",
           "type": "profile"
         },
         {
-          "id": "about-position",
+          "id": "intro-3",
           "type": "text",
           "style": "quote",
-          "body_id": "Business, Brand & People: <em>pelajaran dari membangun, menghubungkan, dan menumbuhkan.</em>",
-          "body_en": "Business, Brand & People: <em>lessons from building, connecting and growing.</em>"
+          "body_id": "Business, Brand & People: \u003cem>pelajaran dari membangun, menghubungkan, dan menumbuhkan.\u003c/em>",
+          "body_en": "Business, Brand & People: \u003cem>lessons from building, connecting and growing.\u003c/em>"
+        },
+        {
+          "id": "intro-4",
+          "type": "instagram"
         }
       ]
     },
     {
-      "key": "work",
-      "icon": "badge",
-      "tab_id": "Increasink",
-      "tab_en": "Increasink",
-      "label_id": "Tentang Increasink",
-      "label_en": "About Increasink",
+      "key": "gains",
+      "icon": "gains",
+      "tab_id": "GAINS",
+      "tab_en": "GAINS",
+      "label_id": "Bio GAINS",
+      "label_en": "Bio GAINS",
       "widgets": [
         {
-          "id": "work-title",
+          "id": "gains-1",
           "type": "heading",
-          "text_id": "Brand dengan strategi dan cerita.",
-          "text_en": "Brands built with strategy and story."
+          "text_id": "Profil GAINS",
+          "text_en": "GAINS Profile"
         },
         {
-          "id": "work-description",
+          "id": "gains-2",
+          "type": "accordion",
+          "items": [
+            {
+              "k": "goal",
+              "badge": "G",
+              "title_id": "Goal",
+              "title_en": "Goal",
+              "body_id": "Membuat brand jadi \u003cstrong>tak terlupakan\u003c/strong> lewat keunikan dan kekuatan cerita mereka sendiri.",
+              "body_en": "Helping brands become \u003cstrong>unforgettable\u003c/strong> through their uniqueness and powerful stories."
+            },
+            {
+              "k": "accomplishment",
+              "badge": "A",
+              "title_id": "Accomplishment",
+              "title_en": "Accomplishment",
+              "body_id": "",
+              "body_en": "",
+              "list": [
+                {
+                  "id": "\u003cb>Dewan Pengurus\u003c/b> Perkumpulan Alumni Kanisius Jakarta",
+                  "en": "\u003cb>Board Member\u003c/b>, Kanisius Jakarta Alumni Association"
+                },
+                {
+                  "id": "\u003cb>Digital Team Perduki\u003c/b>, Fasilitator GLEAM, CSSK, SKK",
+                  "en": "\u003cb>Digital Team Perduki\u003c/b>, Facilitator GLEAM, CSSK, SKK"
+                },
+                {
+                  "id": "\u003cb>Media Ministry\u003c/b> BPK PKK KAJ",
+                  "en": "\u003cb>Media Ministry\u003c/b> BPK PKK KAJ"
+                },
+                {
+                  "id": "\u003cb>PAKKJ\u003c/b> Digital Team",
+                  "en": "\u003cb>PAKKJ\u003c/b> Digital Team"
+                },
+                {
+                  "id": "\u003cb>Perhimpunan Perduki\u003c/b> Digital Team",
+                  "en": "\u003cb>Perhimpunan Perduki\u003c/b> Digital Team"
+                }
+              ]
+            },
+            {
+              "k": "interest",
+              "badge": "I",
+              "title_id": "Interest",
+              "title_en": "Interest",
+              "body_id": "Aktif di olahraga \u003cstrong>badminton\u003c/strong> dan \u003cstrong>padel\u003c/strong>.",
+              "body_en": "Active in \u003cstrong>badminton\u003c/strong> and \u003cstrong>padel\u003c/strong>.",
+              "chips": [
+                "Badminton",
+                "Padel",
+                "Storytelling",
+                "Desain"
+              ]
+            },
+            {
+              "k": "network",
+              "badge": "N",
+              "title_id": "Network",
+              "title_en": "Network",
+              "body_id": "Seorang ayah yang diberkati, dengan istri yang luar biasa dan tiga anak yang menggemaskan.",
+              "body_en": "A blessed father with a beautiful wife and three lovable kids.",
+              "chips": [
+                "Catholic Church Organization",
+                "Influencer & Public Figure",
+                "Retail",
+                "Founder"
+              ]
+            },
+            {
+              "k": "skill",
+              "badge": "S",
+              "title_id": "Skill",
+              "title_en": "Skill",
+              "body_id": "\u003cstrong>Social Media & Design.\u003c/strong> Brand strategy, identitas visual, konten social media, storytelling, dan campaign kreatif.",
+              "body_en": "\u003cstrong>Social Media & Design.\u003c/strong> Brand strategy, visual identity, social media content, storytelling, and creative campaigns."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "personal",
+      "icon": "heart",
+      "tab_id": "Personal",
+      "tab_en": "Personal",
+      "label_id": "Di Luar Pekerjaan",
+      "label_en": "Beyond Work",
+      "widgets": [
+        {
+          "id": "personal-1",
+          "type": "heading",
+          "text_id": "My Interests",
+          "text_en": "My Interests"
+        },
+        {
+          "id": "personal-2",
+          "type": "carousel",
+          "slides": [
+            {
+              "type": "image",
+              "src": "../bni/img/interest-padel-2.webp"
+            },
+            {
+              "type": "image",
+              "src": "../bni/img/interest-padel-1.webp"
+            },
+            {
+              "type": "image",
+              "src": "../bni/img/interest-padel-3.webp"
+            },
+            {
+              "type": "image",
+              "src": "../bni/img/interest-padel-4.webp"
+            },
+            {
+              "type": "image",
+              "src": "../bni/img/interest-badminton-1.webp"
+            },
+            {
+              "type": "image",
+              "src": "../bni/img/ministry-1.webp"
+            },
+            {
+              "type": "image",
+              "src": "../bni/img/ministry-2.webp"
+            }
+          ]
+        },
+        {
+          "id": "personal-3",
+          "type": "chips",
+          "items": [
+            "Padel",
+            "Badminton",
+            "Prodiakon",
+            "BPK PKK KAJ",
+            "Perduki"
+          ]
+        },
+        {
+          "id": "personal-4",
+          "type": "space",
+          "h": 26
+        },
+        {
+          "id": "personal-5",
+          "type": "heading",
+          "text_id": "Off the Record",
+          "text_en": "Off the Record"
+        },
+        {
+          "id": "personal-6",
+          "type": "facts",
+          "items": [
+            {
+              "n": "01",
+              "id": "Kepala tiga, \u003cb>anak tiga\u003c/b>.",
+              "en": "In his thirties, \u003cb>three kids\u003c/b>."
+            },
+            {
+              "n": "02",
+              "id": "Mantan \u003cb>atlet badminton\u003c/b>, lalu banting setir ke DKV, dan berakhir punya agensi.",
+              "en": "A former \u003cb>badminton athlete\u003c/b> who switched to visual communication design, and ended up running an agency."
+            },
+            {
+              "n": "03",
+              "id": "Kalau disuruh pilih satu makanan seumur hidup: \u003cb>bakmi\u003c/b>.",
+              "en": "One food for life, no hesitation: \u003cb>bakmi\u003c/b>."
+            }
+          ]
+        },
+        {
+          "id": "personal-7",
+          "type": "space",
+          "h": 26
+        },
+        {
+          "id": "personal-8",
+          "type": "heading",
+          "text_id": "Bio Sheet",
+          "text_en": "Bio Sheet"
+        },
+        {
+          "id": "personal-9",
+          "type": "table",
+          "title_id": "Informasi Bisnis",
+          "title_en": "Business Information",
+          "rows": [
+            {
+              "label_id": "Nama Bisnis",
+              "label_en": "Business Name",
+              "value_id": "Increasink",
+              "value_en": "Increasink"
+            },
+            {
+              "label_id": "Profesi",
+              "label_en": "Profession",
+              "value_id": "Founder & Creative Director, branding agency",
+              "value_en": "Founder & Creative Director, branding agency"
+            },
+            {
+              "label_id": "Lokasi",
+              "label_en": "Location",
+              "value_id": "Gedung AD Premier Lantai 9\nJl. TB. Simatupang No. 5, Ragunan,\nPasar Minggu, Jakarta Selatan\n\nJl. Letjen S. Parman No. 28, RT.3/RW.5,\nTj. Duren Sel., Kec. Grogol Petamburan,\nKota Jakarta Barat, Daerah Khusus Ibukota Jakarta 11470",
+              "value_en": "Gedung AD Premier Lantai 9\nJl. TB. Simatupang No. 5, Ragunan,\nPasar Minggu, Jakarta Selatan\n\nJl. Letjen S. Parman No. 28, RT.3/RW.5,\nTj. Duren Sel., Kec. Grogol Petamburan,\nKota Jakarta Barat, Daerah Khusus Ibukota Jakarta 11470",
+              "hidden": true
+            },
+            {
+              "label_id": "Pekerjaan Sebelumnya",
+              "label_en": "Previous Jobs",
+              "value_id": "Co-Founder & Creative Director, Dreamplanner",
+              "value_en": "Co-Founder & Creative Director, Dreamplanner"
+            }
+          ]
+        },
+        {
+          "id": "personal-10",
+          "type": "table",
+          "title_id": "Informasi Pribadi",
+          "title_en": "Personal Information",
+          "rows": [
+            {
+              "label_id": "Istri",
+              "label_en": "Spouse",
+              "value_id": "Christine",
+              "value_en": "Christine"
+            },
+            {
+              "label_id": "Anak",
+              "label_en": "Children",
+              "value_id": "Wayne, Sharren, Brandt",
+              "value_en": "Wayne, Sharren, Brandt"
+            },
+            {
+              "label_id": "Peliharaan",
+              "label_en": "Animals",
+              "value_id": "",
+              "value_en": "",
+              "hidden": true
+            },
+            {
+              "label_id": "Hobi",
+              "label_en": "Hobbies",
+              "value_id": "Badminton, padel",
+              "value_en": "Badminton, padel"
+            },
+            {
+              "label_id": "Minat",
+              "label_en": "Activities of Interest",
+              "value_id": "Padel, badminton, pelayanan gereja, storytelling, film Christopher Nolan, belajar AI",
+              "value_en": "Padel, badminton, church ministry, storytelling, Christopher Nolan films, learning AI"
+            },
+            {
+              "label_id": "Kota Tinggal",
+              "label_en": "City of Residence",
+              "value_id": "Jakarta Barat",
+              "value_en": "West Jakarta"
+            },
+            {
+              "label_id": "Sudah Berapa Lama",
+              "label_en": "How Long",
+              "value_id": "",
+              "value_en": "",
+              "hidden": true
+            }
+          ],
+          "photos": [
+            {
+              "src": "../bni/img/personal-speaker.webp",
+              "alt_id": "Stephen menjadi pembicara",
+              "alt_en": "Stephen speaking at an event"
+            },
+            {
+              "src": "../bni/img/personal-family.webp",
+              "alt_id": "Stephen bersama istri dan ketiga anaknya",
+              "alt_en": "Stephen with his wife and three kids"
+            },
+            {
+              "src": "../bni/img/personal-prodiakon.webp",
+              "alt_id": "Pelayanan prodiakon",
+              "alt_en": "Serving as an extraordinary minister of Holy Communion"
+            },
+            {
+              "src": "../bni/img/personal-kanisius.webp",
+              "alt_id": "Stephen di CC Alumni Day, reuni alumni Kanisius",
+              "alt_en": "Stephen at CC Alumni Day, the Kanisius alumni reunion"
+            }
+          ]
+        },
+        {
+          "id": "personal-11",
+          "type": "table",
+          "title_id": "Lain-lain",
+          "title_en": "Miscellaneous",
+          "rows": [
+            {
+              "label_id": "Keinginan terbesar saya adalah...",
+              "label_en": "My burning desire is to...",
+              "value_id": "",
+              "value_en": ""
+            },
+            {
+              "label_id": "Hal yang belum banyak orang tahu tentang saya",
+              "label_en": "Something no one knows about me",
+              "value_id": "Nama ketiga anak saya punya cerita: Wayne dari Batman, Sharren dari kata share, Brandt dari kata brand.",
+              "value_en": "My three kids' names each have a story: Wayne after Batman, Sharren from the word share, Brandt from the word brand.",
+              "links": [
+                {
+                  "label": "Wayne",
+                  "url": "https://www.instagram.com/p/DLSAsWFhGVf/"
+                },
+                {
+                  "label": "Sharren",
+                  "url": "https://www.instagram.com/p/DOKgPJGAXxC/"
+                },
+                {
+                  "label": "Brandt",
+                  "url": "https://www.instagram.com/p/DYG40gwGGFi/"
+                }
+              ]
+            },
+            {
+              "label_id": "Kunci sukses saya adalah...",
+              "label_en": "My key to success is...",
+              "value_id": "Pantang menyerah, selalu melihat dari sisi positif, tekun, dan ingat bahwa ini maraton. Saya percaya apa pun yang dikerjakan dengan hati pasti berbuah.",
+              "value_en": "Never giving up, seeing things positively, persistence, and remembering it's a marathon. I believe anything done with the heart will bear fruit."
+            }
+          ],
+          "stack": true
+        }
+      ]
+    },
+    {
+      "key": "refer",
+      "icon": "hand",
+      "tab_id": "Referral",
+      "tab_en": "Refer",
+      "label_id": "Cara Mereferensikan",
+      "label_en": "How to Refer",
+      "widgets": [
+        {
+          "id": "refer-1",
+          "type": "heading",
+          "text_id": "How to Refer Me",
+          "text_en": "How to Refer Me"
+        },
+        {
+          "id": "refer-2",
           "type": "text",
-          "body_id": "Increasink adalah branding dan digital creative agency. Kami membantu bisnis mengomunikasikan value-nya lewat brand strategy, identitas visual, social media, dan storytelling.",
-          "body_en": "Increasink is a branding and digital creative agency. We help businesses communicate their value through brand strategy, visual identity, social media, and storytelling."
+          "body_id": "Kalau ketemu orang seperti ini, kenalkan ke saya.",
+          "body_en": "If you meet someone like this, please connect us."
         },
         {
-          "id": "work-reel",
-          "type": "showreel",
-          "src": "img/ourworks.mp4",
-          "poster": "img/ourworks-poster.webp",
-          "loop": "img/ourworks-loop.mp4",
-          "label_id": "Lihat karya kami",
-          "label_en": "Explore our work",
-          "note_id": "Buka showreel",
-          "note_en": "Open showreel"
+          "id": "refer-3",
+          "type": "tiers",
+          "items": [
+            {
+              "name": "Bread",
+              "color": "#A0703C",
+              "level_id": "Referral harian",
+              "level_en": "Everyday referral",
+              "body_id": "Business owner yang belum punya tim Instagram internal, atau capek mengurus tim social media sendiri. Juga bisnis B2B dan profesional yang mau menaikkan visibilitas online supaya kredibilitasnya kelihatan.",
+              "body_en": "Business owners with no in-house Instagram team, or who are tired of running a social media team themselves. Also B2B businesses and professionals who want more online visibility to build trust and credibility."
+            },
+            {
+              "name": "Cheese",
+              "color": "#C9A227",
+              "level_id": "Lebih dalam",
+              "level_en": "Better fit",
+              "body_id": "Brand yang mau mempromosikan produk atau jasanya dengan cara yang lebih elegan, edukatif, dan konsisten dengan brand image-nya. Termasuk industri Health & Beauty yang social media-nya sudah aktif tapi mau engagement yang lebih hidup.",
+              "body_en": "Brands that want to promote their products or services in a more elegant, educational, and on-brand way. Includes Health & Beauty businesses already active on social media who want deeper engagement."
+            },
+            {
+              "name": "Meat",
+              "color": "#B0893C",
+              "level_id": "Referral impian",
+              "level_en": "Dream referral",
+              "body_id": "Bisnis dari industri apa pun yang mau membenahi digital branding-nya menyeluruh, dari strategi, identitas visual, sampai eksekusi kontennya.",
+              "body_en": "A business from any industry ready to build comprehensive digital branding, from strategy and visual identity through to content execution."
+            }
+          ]
         },
         {
-          "id": "work-web",
-          "type": "button",
-          "label_id": "Kenali Increasink",
-          "label_en": "Meet Increasink",
-          "url": "https://increasink.co.id"
+          "id": "refer-4",
+          "type": "space",
+          "h": 26
+        },
+        {
+          "id": "refer-5",
+          "type": "heading",
+          "text_id": "Top Ten Customers",
+          "text_en": "Top Ten Customers"
+        },
+        {
+          "id": "refer-6",
+          "type": "facts",
+          "items": [
+            {
+              "n": "A",
+              "id": "\u003cb>Demografi.\u003c/b> Owner dan founder bisnis yang sudah jalan dan tumbuh: properti, distribusi, klinik jaringan, jasa profesional, sampai F&B yang sedang scale.",
+              "en": "\u003cb>Demographics.\u003c/b> Owners and founders of established, growing businesses: property, distribution, clinic chains, professional services, and F&B brands that are scaling."
+            },
+            {
+              "n": "B",
+              "id": "\u003cb>Asosiasi.\u003c/b> Organisasi dan pelayanan gereja Katolik seperti Perduki dan PAKKJ.",
+              "en": "\u003cb>Association.\u003c/b> Catholic church organizations and ministries such as Perduki and PAKKJ."
+            },
+            {
+              "n": "C",
+              "id": "\u003cb>Cara saya menemukan mereka.\u003c/b> Lewat referral dan jaringan pelayanan gereja.",
+              "en": "\u003cb>How I found them.\u003c/b> Through referrals and church ministry networks."
+            },
+            {
+              "n": "D",
+              "id": "\u003cb>Hot buttons.\u003c/b> Bisnisnya sudah besar tapi brand-nya belum ikut tumbuh, capek gonta-ganti freelancer yang hasilnya tidak pernah klop, dan melihat kompetitor tampil lebih premium.",
+              "en": "\u003cb>Hot buttons.\u003c/b> The business has grown but the brand hasn't kept up, they're tired of switching freelancers who never quite click, and competitors look more premium."
+            }
+          ]
         }
       ]
     },
@@ -129,23 +555,49 @@ var DATA = {
       "icon": "chat",
       "tab_id": "Kontak",
       "tab_en": "Contact",
-      "label_id": "Mari terhubung",
-      "label_en": "Let's connect",
+      "label_id": "Kontak",
+      "label_en": "Contact",
       "dark": true,
       "widgets": [
         {
-          "id": "contact-title",
+          "id": "connect-1",
           "type": "heading",
-          "text_id": "Mulai dari percakapan.",
-          "text_en": "Start with a conversation."
+          "text_id": "Let's Connect",
+          "text_en": "Let's Connect"
         },
         {
-          "id": "contact-links",
+          "id": "connect-2",
           "type": "contact"
         },
         {
-          "id": "contact-share",
+          "id": "connect-3",
           "type": "share"
+        },
+        {
+          "id": "connect-4",
+          "type": "showreel",
+          "src": "img/ourworks.mp4",
+          "poster": "img/ourworks-poster.webp",
+          "loop": "img/ourworks-loop.mp4",
+          "label_id": "Our Showreel",
+          "label_en": "Our Showreel",
+          "note_id": "Ketuk untuk lihat",
+          "note_en": "Click to Explore"
+        },
+        {
+          "id": "connect-5",
+          "type": "image",
+          "src": "img/increasink.png",
+          "style": "logo",
+          "invert": true,
+          "alt": "Increasink"
+        },
+        {
+          "id": "connect-6",
+          "type": "text",
+          "size": "xs",
+          "body_id": "Stephen Septian &middot; Increasink",
+          "body_en": "Stephen Septian &middot; Increasink"
         }
       ]
     }
