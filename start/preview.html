@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Preview Bio Card</title><link rel="stylesheet" href="../assets/app.css"></head><body>
+<div id="app" class="app"><p style="padding:30px">Preview kartu muncul setelah data profil diisi.</p></div>
+<script>
+'use strict';
+window.addEventListener('message', function receive(event) {
+  if (event.origin !== location.origin || event.source !== parent || !event.data || event.data.type !== 'biocard-preview') return;
+  window.removeEventListener('message', receive);
+  window.DATA = event.data.data;
+  var script = document.createElement('script'); script.src = '../assets/app.js'; document.body.appendChild(script);
+});
+</script></body></html>

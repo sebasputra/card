@@ -1235,7 +1235,7 @@
 
   function share(b) {
     var url = location.href.split('#')[0];
-    var title = ((D.hero || {}).name || '') + ' · Bio GAINS';
+    var title = ((D.hero || {}).name || '') + ' · ' + (L(D.hero, 'connector') || 'Bio Card');
     if (navigator.share) navigator.share({ title: title, text: title, url: url }).catch(function () {});
     else if (navigator.clipboard) {
       navigator.clipboard.writeText(url);

@@ -70,6 +70,12 @@ check('card aneh ditolak', bad.code === 400);
 const foreign = await call({ card: 'stephen-bni', u: 'https://evil.test/x' });
 check('link domain lain tidak ikut', !foreign.body.replace(/\r\n /g, '').includes('evil.test'));
 
+const general = await call({ card: 'stephen', u: 'https://x.test/stephen/' });
+const generalText = general.body.replace(/\r\n /g, '');
+check('profil umum: vCard berhasil', general.code === 200);
+check('profil umum: label Bio Card tanpa BNI atau GAINS', generalText.includes('item1.X-ABLabel:Bio Card') && !/BNI|GAINS/.test(generalText));
+check('profil umum: foto dan kontak tersedia', generalText.includes('PHOTO;ENCODING=b;TYPE=JPEG:') && generalText.includes('FN:Stephen Septian'));
+
 console.log('LULUS (' + ok.length + ')');
 ok.forEach((x) => console.log('  + ' + x));
 if (fail.length) {
