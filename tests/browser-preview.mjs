@@ -30,7 +30,7 @@ try {
     assert.ok(size.scroll <= size.width, 'No horizontal overflow at ' + width + ': ' + JSON.stringify(size));
     await until("document.querySelector('#example').contentWindow.innerWidth === 390");
   }
-  await evaluate("document.querySelector('#example').contentWindow.BioCard.go(3)");
+  await evaluate("(() => { const card=document.querySelector('#example').contentWindow.BioCard; card.go(card.steps().findIndex(step => step.key === 'connect')); })()");
   const contact = await evaluate(`(() => { const doc=document.querySelector('#example').contentDocument; const email=doc.querySelector('.contact .tx'); const cta=doc.querySelector('.wabtn'); return {emailHeight:email.getBoundingClientRect().height,emailLine:parseFloat(getComputedStyle(email).lineHeight),ctaHeight:cta.getBoundingClientRect().height}; })()`);
   assert.ok(contact.emailHeight <= contact.emailLine + 1, 'Stephen email fits on one line');
   assert.ok(contact.ctaHeight < 70, 'WhatsApp CTA stays on one line');
