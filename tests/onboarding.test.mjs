@@ -63,10 +63,19 @@ card.window.HTMLMediaElement.prototype.play = () => Promise.resolve();
 card.window.HTMLMediaElement.prototype.pause = () => {};
 card.window.eval(read('stephen/data.js'));
 card.window.eval(read('assets/app.js'));
-assert.doesNotMatch(JSON.stringify(card.window.DATA), /BNI|GAINS|pins|chapter/i);
+const profile = card.window.DATA;
+assert.deepEqual(Array.from(profile.pages, page => page.key), ['intro', 'gains', 'personal', 'refer', 'connect']);
+assert.equal(profile.pins, undefined);
+assert.equal(profile.images.bni, undefined);
+assert.ok(profile.pages[0].widgets.some(widget => widget.type === 'instagram'));
+assert.equal(profile.pages.find(page => page.key === 'gains').widgets.find(widget => widget.type === 'accordion').items.length, 5);
+assert.equal(profile.pages.find(page => page.key === 'personal').widgets.find(widget => widget.type === 'carousel').slides.length, 7);
+assert.ok(profile.pages.find(page => page.key === 'refer').widgets.some(widget => widget.type === 'tiers'));
+// Media may reuse existing public assets; membership copy must not leak into the profile.
+assert.doesNotMatch(JSON.stringify(profile).replace(/\.\.\/bni\/img\//g, 'img/'), /BNI|pins|chapter/i);
 for (let i = 0; i < card.window.BioCard.steps().length; i++) {
   card.window.BioCard.go(i);
-  assert.doesNotMatch(card.window.document.querySelector('#app').textContent, /BNI|GAINS|chapter/i);
+  assert.doesNotMatch(card.window.document.querySelector('#app').textContent, /BNI|chapter/i);
 }
 card.window.close();
 console.log('LULUS: onboarding umum/custom domain, domain invalid, kembali/edit, preset BNI, ekspor, escaping dan renderer Stephen non-BNI.');
