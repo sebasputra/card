@@ -51,7 +51,7 @@ export default async function handler(req, res) {
   // link kartu Bio GAINS, hanya kalau menunjuk ke domain ini sendiri
   try {
     const u = new URL(String(req.query.u || ''));
-    if (u.host === req.headers.host) L.push('item1.URL:' + v(u.origin + u.pathname), 'item1.X-ABLabel:Bio GAINS');
+    if (u.host === req.headers.host) L.push('item1.URL:' + v(u.origin + u.pathname), 'item1.X-ABLabel:' + v(hero.connector_id || hero.connector_en || 'Bio Card'));
   } catch (e) { /* tanpa link kartu */ }
 
   if (c.ig) L.push('X-SOCIALPROFILE;TYPE=instagram:https://instagram.com/' + v(c.ig));
